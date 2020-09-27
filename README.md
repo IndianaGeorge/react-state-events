@@ -4,7 +4,7 @@
 
 [See a working demo](https://indianageorge.github.io/react-state-events/)
 
-[![NPM](https://img.shields.io/npm/v/react-rxjs-tools.svg)](https://www.npmjs.com/package/react-rxjs-tools)
+[![NPM](https://img.shields.io/npm/v/react-state-events.svg)](https://www.npmjs.com/package/react-state-events)
 
 ## Install
 
