@@ -17,7 +17,7 @@ export default ({stateEvents})=>{
         console.log('FromComponent handled error:',err);
     };
     return (
-        <Subscription initial={1} stateEvents={stateEvents} onError={onError} >
+        <Subscription stateEvents={stateEvents} onError={onError} >
             {(data)=>
                 <span>
                     {data}

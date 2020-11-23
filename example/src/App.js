@@ -5,7 +5,7 @@ import FromHook from './UI/FromHook';
 import FromComponent from './UI/FromComponent';
 
 export default (props) => {
-  const counterEvents = new StateEvents();
+  const counterEvents = new StateEvents(0);
   return (
     <div>
       <div>

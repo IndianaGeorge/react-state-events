@@ -6,6 +6,11 @@
 
 [![NPM](https://img.shields.io/npm/v/react-state-events.svg)](https://www.npmjs.com/package/react-state-events)
 
+## Breaking changes from version 1.x
+- StateEvents constructor now takes a value to initialize the class.
+- useStateEvents hook and Subscription class no longer pass an initial value, they will now receive the initial value or the last published value of the StateEvents instance.
+- This was made so the initial value is consistent across views.
+
 ## Install
 
 ```bash
@@ -33,7 +38,7 @@ This is a collection of tools to help you lift React state.
 ```js
 import { StateEvents } from 'react-state-events'
 
-const events = new StateEvents();
+const events = new StateEvents(0);
 events.subscribe((data)=>console.log(data));
 events.publish(1);
 events.publish(2);
@@ -50,7 +55,7 @@ import React, {useState} from 'react'
 import {useStateEvents} from 'react-state-events'
 
 export default ({myEvents})=>{
-    const [val,setVal] = useStateEvents("waiting for data",myEvents);
+    const [val,setVal] = useStateEvents(myEvents);
     return (
         <span>
             {val}
@@ -67,7 +72,7 @@ import React, {useState, useEffect} from 'react'
 import {Subscription} from 'react-rxjs-tools'
 
 export default ({myEvents})=>
-        <Subscription initial="waiting for data" stateEvents={myEvents}>
+        <Subscription stateEvents={myEvents}>
             {(data)=>
                 <span>
                     {data}
@@ -81,12 +86,12 @@ All methods allow for handling callback errors. If a handler throws an exception
 
 ### useBehaviorSubject hook
 ```jsx
-const [val,setVal] = useStateEvents(initial, myEvents, errorCallback);
+const [val,setVal] = useStateEvents(myEvents, errorCallback);
 ```
 
 ### BehaviorSubscription component
 ```jsx
-<Subscription initial={initial} stateEvents={myEvents} onError={errorCallback} >
+<Subscription stateEvents={myEvents} onError={errorCallback} >
   {...}
 </Subscription>
 ```
@@ -107,7 +112,7 @@ import { StateEvents } from 'react-state-events'
 
 export default class CounterController {
     constructor() {
-        this.counterEvents = new StateEvents();
+        this.counterEvents = new StateEvents(0);
         this.counter = 0;
     }
 
@@ -140,7 +145,7 @@ import { counterContext } from '../Context/counterContext';
 
 export default (props)=>{
   const counterController = useContext(counterContext);
-  const [counter] = useStateEvents(0, Controller.getfilteredItemsEvents());
+  const [counter] = useStateEvents(Controller.getfilteredItemsEvents());
   const increment = ()=>counterController.increment();
   return (
     <div>

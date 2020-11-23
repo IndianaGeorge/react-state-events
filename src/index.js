@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
 export class StateEvents {
+  constructor(initial) {
+    this.current = initial;
+  }
+
   handlers = [];
   subscribe(callback, onError){
     this.handlers.push({callback, onError});
@@ -15,7 +19,12 @@ export class StateEvents {
     this.handlers=[];
   }
 
+  getCurrent(){
+    return this.current;
+  }
+
   publish(data){
+    this.current = data;
     this.handlers.forEach(handler=>{
       try {
         handler.callback(data);
@@ -43,8 +52,8 @@ export class StateEvents {
   }
 } 
 
-export const useStateEvents = (initial,stateEvents,onError) => {
-  const [value, setValue] = useState(initial);
+export const useStateEvents = (stateEvents,onError) => {
+  const [value, setValue] = useState(stateEvents.getCurrent(stateEvents));
   useEffect(() => {
     const callback = data => setValue(data);
     if (onError) {
@@ -61,13 +70,12 @@ export const useStateEvents = (initial,stateEvents,onError) => {
 };
 
 useStateEvents.propTypes = {
-  initial: PropTypes.any.isRequired,
   stateEvents: PropTypes.object.isRequired,
   onError: PropTypes.func,
 }
 
-export const Subscription = ({initial,stateEvents,children,onError}) => {
-  const [value, setValue] = useState(initial);
+export const Subscription = ({stateEvents,children,onError}) => {
+  const [value, setValue] = useState(stateEvents.getCurrent(stateEvents));
   useEffect(() => {
     const callback = data => setValue(data);
     if (onError) {
@@ -83,7 +91,6 @@ export const Subscription = ({initial,stateEvents,children,onError}) => {
 }
 
 Subscription.propTypes = {
-  initial: PropTypes.any.isRequired,
   stateEvents: PropTypes.object.isRequired,
   children: PropTypes.func.isRequired,
   onError: PropTypes.func,

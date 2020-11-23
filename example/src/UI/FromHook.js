@@ -6,7 +6,7 @@ export default ({stateEvents})=>{
     const onError = (err)=>{
         console.log('FromHook handled error:',err);
     };
-    const [val,setVal] = useStateEvents(1,stateEvents,onError);
+    const [val,setVal] = useStateEvents(stateEvents,onError);
     const onClick = ()=>setVal(val+1);
     return (
         <span>
