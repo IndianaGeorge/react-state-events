@@ -87,7 +87,7 @@ export default ({myEvents})=>{
 - you can use it from a class component
 ```jsx
 import React, {useState, useEffect} from 'react'
-import {Subscription} from 'react-rxjs-tools'
+import {Subscription} from 'react-state-events'
 
 export default ({myEvents})=>
         <Subscription stateEvents={myEvents}>
@@ -102,12 +102,12 @@ export default ({myEvents})=>
 ## Handling callback errors
 All methods allow for handling callback errors. If a handler throws an exception and a single suscriber has no error handling callback, processing **will rethrow the exception** at that point, so (while it's optional) it's recommended that you always register an error handler, like so:
 
-### useBehaviorSubject hook
+### useStateEvents hook
 ```jsx
 const [val,setVal] = useStateEvents(myEvents, errorCallback);
 ```
 
-### BehaviorSubscription component
+### Subscription component
 ```jsx
 <Subscription stateEvents={myEvents} onError={errorCallback} >
   {...}

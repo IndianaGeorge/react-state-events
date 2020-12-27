@@ -11,10 +11,10 @@ export default (props) => {
   return (
     <div>
       <div>
-        Counter via useSubject hook: <FromHook stateEvents={counterEvents} />
+        Counter via useStateEvents hook: <FromHook stateEvents={counterEvents} />
       </div>
       <div>
-        Counter via Subscription component: <FromComponent stateEvents={counterEvents} />
+        Counter via Subscription class: <FromComponent stateEvents={counterEvents} />
       </div>
       <div>
         Counter via useSubject hook (External): <FromHook stateEvents={extCounterEventsA} />
