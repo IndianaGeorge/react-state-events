@@ -32,13 +32,30 @@ This is a collection of tools to help you lift React state.
 - It does the above using very little code.
 
 ## Using the StateEvents class
-**Uses**
+**Advantages**
 - Can be subscribed/published to
 - Can handle exceptions in the callback
+- High performance
+- Multiple instances do not clash
 ```js
 import { StateEvents } from 'react-state-events'
 
 const events = new StateEvents(0);
+events.subscribe((data)=>console.log(data));
+events.publish(1);
+events.publish(2);
+events.unsubscribeAll();
+```
+
+## Using the ExternalStateEvents class
+**Advantages**
+- Can be subscribed/published to
+- __Can cross micro-frontend boundaries__
+- Instances with the same name share streams
+```js
+import { ExternalStateEvents } from 'react-state-events'
+
+const events = new StateEvents(0, 'myStreamName');
 events.subscribe((data)=>console.log(data));
 events.publish(1);
 events.publish(2);
@@ -97,7 +114,7 @@ const [val,setVal] = useStateEvents(myEvents, errorCallback);
 ```
 In both cases, errorCallback should be a function that takes a single argument for the error.
 
-## How do I lift state using react-state-event?
+## How do I lift state using react-state-events?
 
 Using a combination of react-state-events and the Context API:
 * Create a controller class (not a React component!) that keeps state and a `StateEvents` instance.
@@ -161,6 +178,37 @@ When clicking the button
 - All instances of the component will be redrawn with the new counter.
 
 Try adding more instances of the counter in the context, or even in a new context!
+
+## How do I share state across micro-frontends using react-state-events?
+You don't need the context API, just use `ExternalStateEvents` in place of `StateEvents` and remember the event stream name parameter. External event streams are global, so it identifies the stream across ALL your application, ACROSS micro-frontends.
+* Create one `ExternalStateEvents` in micro-frontend `A`, use the `useStateEvents` hook with it.
+* Create one `ExternalStateEvents` in micro-frontend `B` with the same name you used in `A` and use the `useStateEvents` with it.
+* Make sure the ExternalStateEvents object is not being destroyed with every render! This causes multiple problems. Context API works here (as shown above), but passing an instance as a prop to the controlled component is also enough.
+* If you change the state in `A`, `B` will update with the value (and vice-versa).
+* `A` and `B` can be host/application or siblings, they will still communicate.
+* This is achieved using asynchronous messages, so performance is lower than `StateEvents`.
+
+## How do I share state with micro-frontends written in a different framework?
+You can communicate with other frameworks by sending/handling messages in the proper format:
+```
+window.postMessage({
+    type: "react-state-event",
+    name: streamName,
+    success: success,
+    payload: data
+}, window.origin);
+```
+Where:
+* type is always "react-state-event".
+* name is the global name of the stream.
+* success is true for success, false for error (which triggers registered error handlers).
+* payload is the state that will be sent in the event.
+
+## Is lifting state using `ExternalStateEvents` safer than using `LocalStorage`?
+* Messages are scoped to the window that emitted them.
+* Any Javascript running in the same window will see the passing messages, so it's vulnerable to XSS just like LocalStorage.
+* Messages are __NOT__ stored (as in LocalStorage), so once the event is handled, an XSS attack cannot retrieve it anymore.
+* Messages can be sent to and received from the window through the javascript console
 
 ## License
 
