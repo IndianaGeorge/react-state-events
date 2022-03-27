@@ -20,6 +20,7 @@ npm install --save react-state-events
 ## What is this?
 This is a collection of tools to help you lift React state.
 - StateEvents: a class to publish and subscribe to.
+- ExternalStateEvents: same as above, but can communicate without having the original instance (useful with micro-frontends).
 - useStateEvents: a hook to publish data and update your component when data arrives.
 - Subscription: a component that will update when data arrives.
 
