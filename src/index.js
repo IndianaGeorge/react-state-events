@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
+const initTimeoutMiliseconds = 500;
+
 export class StateEvents {
   constructor(initial) {
     this.current = initial;
@@ -56,6 +58,9 @@ export class ExternalStateEvents {
   constructor(initial, name) {
     this.current = initial;
     this.name = name;
+    this.initTimer = setTimeout(() => {
+      this.initialize();
+    }, initTimeoutMiliseconds);
   }
 
   handlers = [];
@@ -64,13 +69,33 @@ export class ExternalStateEvents {
     window.addEventListener("message", (event) => {
       if (event.origin !== window.origin
         || event.source !== window
-        || event.data.type != "react-state-event"
         || event.data.name != this.name
       ) {
           return;
       }
+      switch (event.data.type) {
+        case "react-state-event-initresponse":
+          if (event.data.success) {
+            if (this.isInitialized()) {
+              return;
+            }
+            this.initialize();
+          }
+          break;
+        case "react-state-event":
+          this.initialize();
+          break;
+        case "react-state-event-initrequest":
+          if (this.isInitialized()) {
+            window.postMessage({type: "react-state-event-initresponse", name: this.name, success: true, payload: this.current}, window.origin);
+          }
+          return;
+        default:
+          return;
+      }
       if (event.data.success) {
         try {
+          this.current = event.data.payload;
           callback(event.data.payload);
         }
         catch(err) {
@@ -89,6 +114,17 @@ export class ExternalStateEvents {
     }, true);
   }
 
+  isInitialized() {
+    return this.initTimer === null;
+  }
+
+  initialize() {
+    if (this.initTimer!=null) {
+      clearTimeout(this.initTimer);
+      this.initTimer = null;
+    }
+  }
+
   unsubscribe(callback){
     this.handlers = this.handlers.filter((handler)=>handler.callback != callback);
     window.removeEventListener("message", callback, true);
@@ -105,7 +141,7 @@ export class ExternalStateEvents {
 
   publish(data){
     this.current = data;
-    window.postMessage({type: "react-state-event", name: this.name, success: true, payload: data});
+    window.postMessage({type: "react-state-event", name: this.name, success: true, payload: data}, window.origin);
   }
 
   error(err){

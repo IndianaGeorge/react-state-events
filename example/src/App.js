@@ -6,7 +6,8 @@ import FromComponent from './UI/FromComponent';
 
 export default (props) => {
   const counterEvents = new StateEvents(0);
-  const extCounterEvents = new ExternalStateEvents(0,"counter");
+  const extCounterEventsA = new ExternalStateEvents(0,"counter");
+  const extCounterEventsB = new ExternalStateEvents(0,"counter");
   return (
     <div>
       <div>
@@ -16,10 +17,10 @@ export default (props) => {
         Counter via Subscription component: <FromComponent stateEvents={counterEvents} />
       </div>
       <div>
-        Counter via useSubject hook (External): <FromHook stateEvents={extCounterEvents} />
+        Counter via useSubject hook (External): <FromHook stateEvents={extCounterEventsA} />
       </div>
       <div>
-        Counter via Subscription component (External): <FromComponent stateEvents={extCounterEvents} />
+        Counter via Subscription component (External): <FromComponent stateEvents={extCounterEventsB} />
       </div>
     </div>
   )
