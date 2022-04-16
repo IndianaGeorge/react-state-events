@@ -61,6 +61,7 @@ export class ExternalStateEvents {
     this.initTimer = setTimeout(() => {
       this.initialize();
     }, initTimeoutMiliseconds);
+    window.postMessage({type: "react-state-event-initrequest", name: this.name}, window.origin);
   }
 
   handlers = [];
