@@ -3,9 +3,26 @@ import PropTypes from 'prop-types'
 
 const initTimeoutMiliseconds = 500;
 
+let streamCounter = 0;
+
 export class StateEvents {
-  constructor(initial) {
+  constructor(initial, debugName) {
     this.current = initial;
+    const finalDebugName = debugName?debugName:"Anonymous";
+    console.log(JSON.stringify(process.env.NODE_ENV));
+    this.streamId = ++streamCounter;
+    window.postMessage({type: "react-state-event-devTool-streamId", payload: finalDebugName, id: this.streamId}, '*');
+    window.addEventListener("message", (event) => {
+      if (event.origin !== window.origin
+        || event.source !== window
+        || event.data.type !== "react-state-event-devTool-set"
+        || event.data.id !== this.streamId
+      ) {
+        return;
+      }
+      this.current = event.data.payload;
+      this.callHandlers(event.data.payload);
+    });
   }
 
   handlers = [];
@@ -27,6 +44,22 @@ export class StateEvents {
 
   publish(data){
     this.current = data;
+    window.postMessage({type: "react-state-event-devTool-notify", payload: data, id: this.streamId}, '*');
+    this.callHandlers(data);
+  }
+
+  error(err){
+    this.handlers.forEach(handler=>{
+      if (handler.onError) {
+        handler.onError(err);
+      }
+      else {
+        throw(err);
+      }
+    });
+  }
+
+  callHandlers(data){
     this.handlers.forEach(handler=>{
       try {
         handler.callback(data);
@@ -38,17 +71,6 @@ export class StateEvents {
         else {
           throw(err);
         }
-      }
-    });
-  }
-
-  error(err){
-    this.handlers.forEach(handler=>{
-      if (handler.onError) {
-        handler.onError(err);
-      }
-      else {
-        throw(err);
       }
     });
   }

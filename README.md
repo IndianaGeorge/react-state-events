@@ -38,6 +38,7 @@ This is a collection of tools to help you lift React state.
 - Can handle exceptions in the callback
 - High performance
 - Multiple instances do not clash
+- Optional name for debugging, shows on React DevTools in suscriber hooks as StateEvents
 ```js
 import { StateEvents } from 'react-state-events'
 
@@ -118,10 +119,10 @@ In both cases, errorCallback should be a function that takes a single argument f
 ## How do I lift state using react-state-events?
 
 Using a combination of react-state-events and the Context API:
-* Create a controller class (not a React component!) that keeps state and a `StateEvents` instance.
+* Create a controller class (not a React component!) that keeps state and a `StateEvents` instance. Take the debugName in the constructor.
 * Implement a method in the controller that returns the `StateEvents` instance, so components can subscribe to it. Have more instances if they need to update independently.
 * Implement methods in the controller that change the state and publish it
-* Create a context object to hold the instance (or instances!) of the controller.
+* Create a context object to hold the instance (or instances!) of the controller. Pass the debugName for this instance to the constructor.
 * In your components, get the controller instance from the context and use the hook or class to handle the subscription and notify the component of updates.
 
 **CounterController.js**
@@ -129,8 +130,8 @@ Using a combination of react-state-events and the Context API:
 import { StateEvents } from 'react-state-events'
 
 export default class CounterController {
-    constructor() {
-        this.counterEvents = new StateEvents(0);
+    constructor(debugName) {
+        this.counterEvents = new StateEvents(0,debugName);
         this.counter = 0;
     }
 
@@ -150,7 +151,7 @@ export default class CounterController {
 import { createContext } from 'react';
 import CounterController from '../Controller/CounterController';
 
-const counterContext = createContext(new CounterController());
+const counterContext = createContext(new CounterController("myCounter"));
 
 export { counterContext };
 ```

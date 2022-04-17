@@ -5,7 +5,7 @@ import FromHook from './UI/FromHook';
 import FromComponent from './UI/FromComponent';
 
 export default (props) => {
-  const counterEvents = new StateEvents(0);
+  const counterEvents = new StateEvents(0,"single counter");
   const extCounterEventsA = new ExternalStateEvents(0,"counter");
   const extCounterEventsB = new ExternalStateEvents(0,"counter");
   return (
