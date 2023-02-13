@@ -10,8 +10,11 @@ export class StateEvents {
     this.current = initial;
     const finalDebugName = debugName?debugName:"Anonymous";
     console.log(JSON.stringify(process.env.NODE_ENV));
-    this.streamId = ++streamCounter;
-    window.postMessage({type: "react-state-event-devTool-streamId", payload: finalDebugName, id: this.streamId}, '*');
+    const streamId = String(++streamCounter);
+    this.streamId = streamId;
+    setTimeout(function() {
+      window.postMessage({type: "react-state-event-devTool-streamId", payload: finalDebugName, id: streamId}, '*');
+    }, 1000);
     window.addEventListener("message", (event) => {
       if (event.origin !== window.origin
         || event.source !== window
@@ -83,7 +86,10 @@ export class ExternalStateEvents {
     this.initTimer = setTimeout(() => {
       this.initialize();
     }, initTimeoutMiliseconds);
-    window.postMessage({type: "react-state-event-initrequest", name: this.name}, window.origin);
+    setTimeout(
+      function (){
+        window.postMessage({type: "react-state-event-initrequest", name: name}, window.origin);
+      }, 1000);
   }
 
   handlers = [];
