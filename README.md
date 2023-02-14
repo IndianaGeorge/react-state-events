@@ -6,6 +6,8 @@
 
 [![NPM](https://img.shields.io/npm/v/react-state-events.svg)](https://www.npmjs.com/package/react-state-events)
 
+## Breaking changes from version 2.x
+- Moved to React 18
 ## Breaking changes from version 1.x
 - StateEvents constructor now takes a value to initialize the class.
 - useStateEvents hook and Subscription class no longer pass an initial value, they will now receive the initial value or the last published value of the StateEvents instance.
