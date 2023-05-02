@@ -12,7 +12,10 @@ export class StateEvents {
     console.log(JSON.stringify(process.env.NODE_ENV));
     const streamId = String(++streamCounter);
     this.streamId = streamId;
-    setTimeout(function () {
+    if (
+      process.env.NODE_ENV !== 'production' ||
+      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
+    ) {
       window.postMessage(
         {
           type: 'react-state-event-devTool-streamId',
@@ -21,19 +24,19 @@ export class StateEvents {
         },
         '*'
       );
-    }, 1000);
-    window.addEventListener('message', (event) => {
-      if (
-        event.origin !== window.origin ||
-        event.source !== window ||
-        event.data.type !== 'react-state-event-devTool-set' ||
-        event.data.id !== this.streamId
-      ) {
-        return;
-      }
-      this.current = event.data.payload;
-      this.callHandlers(event.data.payload);
-    });
+      window.addEventListener('message', (event) => {
+        if (
+          event.origin !== window.origin ||
+          event.source !== window ||
+          event.data.type !== 'react-state-event-devTool-set' ||
+          event.data.id !== this.streamId
+        ) {
+          return;
+        }
+        this.current = event.data.payload;
+        this.callHandlers(event.data.payload);
+      });
+    }
   }
 
   handlers = [];
@@ -57,18 +60,46 @@ export class StateEvents {
 
   publish(data) {
     this.current = data;
-    window.postMessage(
-      {
-        type: 'react-state-event-devTool-notify',
-        payload: data,
-        id: this.streamId
-      },
-      '*'
-    );
+    if (
+      process.env.NODE_ENV !== 'production' ||
+      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
+    ) {
+      window.postMessage(
+        {
+          type: 'react-state-event-devTool-notify',
+          payload: {
+            streamType: 'StateEvents',
+            streamId: this.streamId,
+            success: true,
+            value: data
+          }
+        },
+        '*'
+      );
+    } else {
+      console.log('In production mode!');
+    }
     this.callHandlers(data);
   }
 
   error(err) {
+    if (
+      process.env.NODE_ENV !== 'production' ||
+      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
+    ) {
+      window.postMessage(
+        {
+          type: 'react-state-event-devTool-notify',
+          payload: {
+            streamType: 'StateEvents',
+            streamId: this.streamId,
+            success: false,
+            value: err
+          }
+        },
+        '*'
+      );
+    }
     this.handlers.forEach((handler) => {
       if (handler.onError) {
         handler.onError(err);
@@ -210,6 +241,23 @@ export class ExternalStateEvents {
       },
       window.origin
     );
+    if (
+      process.env.NODE_ENV !== 'production' ||
+      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
+    ) {
+      window.postMessage(
+        {
+          type: 'react-state-event-devTool-notify',
+          payload: {
+            streamType: 'ExternalStateEvents',
+            streamId: this.name,
+            success: true,
+            value: data
+          }
+        },
+        '*'
+      );
+    }
   }
 
   error(err) {
@@ -222,6 +270,23 @@ export class ExternalStateEvents {
       },
       window.origin
     );
+    if (
+      process.env.NODE_ENV !== 'production' ||
+      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
+    ) {
+      window.postMessage(
+        {
+          type: 'react-state-event-devTool-notify',
+          payload: {
+            streamType: 'ExternalStateEvents',
+            streamId: this.name,
+            success: true,
+            value: err
+          }
+        },
+        '*'
+      );
+    }
   }
 }
 

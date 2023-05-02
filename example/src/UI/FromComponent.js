@@ -1,6 +1,7 @@
 import React from 'react'
 
 import {Subscription} from 'react-state-events'
+import styles from './common.module.css'
 
 export default ({stateEvents})=>{
     const onClick = ()=>{
@@ -12,11 +13,15 @@ export default ({stateEvents})=>{
     return (
         <Subscription stateEvents={stateEvents} onError={onError} >
             {(data)=>
-                <span>
-                    {data}
-                    <button onClick={onClick}>increment</button>
-                    <button onClick={()=>stateEvents.error('Error sent in FromComponent')}>Generate error</button>
-                </span>
+                <div className={styles.block}>
+                    <div className={styles.value}>
+                        {data}
+                    </div>
+                    <div className={styles.controls}>
+                        <button onClick={onClick}>add</button>
+                        <button onClick={()=>stateEvents.error('Error sent in FromComponent')}>error</button>
+                    </div>
+                </div>
             }
         </Subscription>
     );

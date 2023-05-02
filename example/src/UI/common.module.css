@@ -1,0 +1,39 @@
+.block{
+    display: flex;
+    flex-direction: column;
+}
+
+.value{
+    font-size: 3rem;
+    text-align: center;
+}
+
+.controls{
+    display: flex;
+    justify-content:space-around;
+}
+
+.controls > button {
+    font-family: inherit; /* 1 */
+    font-size: 100%; /* 1 */
+    line-height: 1.15; /* 1 */
+    margin: 0; /* 2 */
+    overflow: visible;
+    text-transform: none;
+    background-color: #AAAE8E;
+    border: thin solid black;
+}
+
+.controls > button:hover {
+    background: #E0E0E0;
+}
+
+.controls > button:focus {
+    outline: 0;
+    border-color: white;
+    outline-offset: 0px;
+}
+
+.controls > button:active {
+    transform: scale(0.99);
+}

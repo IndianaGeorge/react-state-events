@@ -1,0 +1,36 @@
+h1 {
+    padding: 0;
+    text-align: center;
+    margin: 0;
+    color: #E0E0E0;
+}
+
+h2 {
+    font-size: large;
+    font-weight: 700;
+}
+
+.app {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    align-content: space-around;
+    height: 100vh;
+}
+
+.context{
+    background-color: #828E82;
+    padding: 1rem;
+}
+
+.context > div {
+    display: flex;
+    justify-content: space-around;
+    gap: 1rem;
+}
+
+.type{
+    max-width: 15em;
+    background-color: #607A7B;
+    padding: 1rem;
+}
