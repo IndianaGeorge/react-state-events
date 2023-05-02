@@ -15,14 +15,16 @@ export class StateEvents {
       process.env.NODE_ENV !== 'production' ||
       process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
     ) {
-      window.postMessage(
-        {
-          type: 'react-state-event-devTool-streamId',
-          payload: finalDebugName,
-          id: streamId
-        },
-        '*'
-      );
+      setTimeout(function () {
+        window.postMessage(
+          {
+            type: 'react-state-event-devTool-streamId',
+            payload: finalDebugName,
+            id: streamId
+          },
+          '*'
+        );
+      }, 1000);
       window.addEventListener('message', (event) => {
         if (
           event.origin !== window.origin ||
