@@ -18,6 +18,10 @@ h2 {
     height: 100vh;
 }
 
+.mode {
+    color: white;
+}
+
 .context{
     background-color: #828E82;
     padding: 1rem;
