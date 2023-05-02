@@ -9,7 +9,6 @@ export class StateEvents {
   constructor(initial, debugName) {
     this.current = initial;
     const finalDebugName = debugName || 'Anonymous';
-    console.log(JSON.stringify(process.env.NODE_ENV));
     const streamId = String(++streamCounter);
     this.streamId = streamId;
     if (
@@ -76,8 +75,6 @@ export class StateEvents {
         },
         '*'
       );
-    } else {
-      console.log('In production mode!');
     }
     this.callHandlers(data);
   }
