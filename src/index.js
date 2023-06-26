@@ -140,64 +140,61 @@ export class ExternalStateEvents {
 
   handlers = [];
   subscribe(callback, onError) {
-    this.handlers.push({ callback, onError });
-    window.addEventListener(
-      'message',
-      (event) => {
-        if (
-          event.origin !== window.origin ||
-          event.source !== window ||
-          event.data.name !== this.name
-        ) {
-          return;
-        }
-        switch (event.data.type) {
-          case 'react-state-event-initresponse':
-            if (event.data.success) {
-              if (this.isInitialized()) {
-                return;
-              }
-              this.initialize();
-            }
-            break;
-          case 'react-state-event':
-            this.initialize();
-            break;
-          case 'react-state-event-initrequest':
+    const wrappedCallback = (event) => {
+      if (
+        event.origin !== window.origin ||
+        event.source !== window ||
+        event.data.name !== this.name
+      ) {
+        return;
+      }
+      switch (event.data.type) {
+        case 'react-state-event-initresponse':
+          if (event.data.success) {
             if (this.isInitialized()) {
-              window.postMessage(
-                {
-                  type: 'react-state-event-initresponse',
-                  name: this.name,
-                  success: true,
-                  payload: this.current
-                },
-                window.origin
-              );
+              return;
             }
-            return;
-          default:
-            return;
-        }
-        if (event.data.success) {
-          try {
-            this.current = event.data.payload;
-            callback(event.data.payload);
-          } catch (err) {
-            if (onError) {
-              onError(err);
-            } else {
-              throw err;
-            }
+            this.initialize();
           }
-        } else {
+          break;
+        case 'react-state-event':
+          this.initialize();
+          break;
+        case 'react-state-event-initrequest':
+          if (this.isInitialized()) {
+            window.postMessage(
+              {
+                type: 'react-state-event-initresponse',
+                name: this.name,
+                success: true,
+                payload: this.current
+              },
+              window.origin
+            );
+          }
+          return;
+        default:
+          return;
+      }
+      if (event.data.success) {
+        try {
+          this.current = event.data.payload;
+          callback(event.data.payload);
+        } catch (err) {
           if (onError) {
-            onError(event.data.payload);
+            onError(err);
+          } else {
+            throw err;
           }
         }
-      },
-      true
-    );
+      } else {
+        if (onError) {
+          onError(event.data.payload);
+        }
+      }
+    };
+    this.handlers.push({ callback, wrappedCallback, onError });
+    window.addEventListener('message', wrappedCallback, true);
   }
 
   isInitialized() {
@@ -212,15 +209,21 @@ export class ExternalStateEvents {
   }
 
   unsubscribe(callback) {
+    const handler = this.handlers.find(
+      (handler) => handler.callback === callback
+    );
     this.handlers = this.handlers.filter(
       (handler) => handler.callback !== callback
     );
-    window.removeEventListener('message', callback, true);
+    if (handler) {
+      const { wrappedCallback } = handler;
+      window.removeEventListener('message', wrappedCallback, true);
+    }
   }
 
   unsubscribeAll() {
-    this.handlers.forEach((item) =>
-      window.removeEventListener('message', item.callback, true)
+    this.handlers.forEach((handler) =>
+      window.removeEventListener('message', handler.wrappedCallback, true)
     );
     this.handlers = [];
   }
@@ -322,7 +325,7 @@ export const Subscription = ({ stateEvents, children, onError }) => {
     }
     return () => stateEvents.unsubscribe(callback);
   }, []);
-  return children(value);
+  return typeof children === 'function' ? children(value) : null;
 };
 
 Subscription.propTypes = {
