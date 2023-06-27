@@ -150,6 +150,60 @@ describe('ExternalStateEvents', () => {
     expect(errorHandler).toHaveBeenCalledWith('An error occurred');
   });
 
+  test('should call error handler when message handler throws', async () => {
+    const stateEvents = new ExternalStateEvents(0, 'example_only');
+    const handler = jest.fn().mockImplementation(() => {
+      // eslint-disable-next-line no-throw-literal
+      throw 'An error occurred';
+    });
+    const errorHandler = jest.fn();
+    stateEvents.subscribe(handler, errorHandler);
+
+    const mockMessageEvent = {
+      origin: window.origin,
+      source: window,
+      data: {
+        type: 'react-state-event',
+        name: 'example_only',
+        success: true,
+        payload: 42
+      }
+    };
+
+    act(() => {
+      window.addEventListener.mock.calls[0][1](mockMessageEvent);
+    });
+    jest.runAllTimers();
+
+    expect(errorHandler).toHaveBeenCalledWith('An error occurred');
+  });
+
+  test('should throw error when message handler throws and no error handler', async () => {
+    const stateEvents = new ExternalStateEvents(0, 'example_only');
+    const handler = jest.fn().mockImplementation(() => {
+      // eslint-disable-next-line no-throw-literal
+      throw 'An error occurred';
+    });
+    stateEvents.subscribe(handler);
+
+    const mockMessageEvent = {
+      origin: window.origin,
+      source: window,
+      data: {
+        type: 'react-state-event',
+        name: 'example_only',
+        success: true,
+        payload: 42
+      }
+    };
+
+    const t = () => {
+      window.addEventListener.mock.calls[0][1](mockMessageEvent);
+    };
+
+    expect(t).toThrow('An error occurred');
+  });
+
   test('should throw when message says no success and no error handler', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
     stateEvents.subscribe(undefined);
