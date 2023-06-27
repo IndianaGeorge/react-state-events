@@ -32,6 +32,16 @@ describe('StateEvents', () => {
     expect(errorHandler).toHaveBeenCalledWith('An error occurred');
   });
 
+  test('should throw when error is called with no error handler', () => {
+    const stateEvents = new StateEvents(0);
+    stateEvents.subscribe(undefined);
+
+    const t = () => {
+      stateEvents.error('An error occurred');
+    };
+    expect(t).toThrow('An error occurred');
+  });
+
   test('should unsubscribe a callback', () => {
     const stateEvents = new StateEvents(0);
     const handler1 = jest.fn();
@@ -63,9 +73,14 @@ describe('StateEvents', () => {
 
 describe('ExternalStateEvents', () => {
   beforeEach(() => {
+    window.origin = 'test';
     window.postMessage = jest.fn();
     window.addEventListener = jest.fn();
     window.removeEventListener = jest.fn();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   test('should register the handler when subscribe is called', async () => {
@@ -93,7 +108,7 @@ describe('ExternalStateEvents', () => {
   });
 
   test('should send a message when publish is called', async () => {
-    const stateEvents = new ExternalStateEvents(0, 'example');
+    const stateEvents = new ExternalStateEvents(0, 'previous');
 
     act(() => {
       stateEvents.publish(42);
@@ -102,19 +117,42 @@ describe('ExternalStateEvents', () => {
 
     expect(window.postMessage).toHaveBeenCalledWith(
       {
-        name: 'example',
+        name: 'previous',
         payload: 42,
         success: true,
         type: 'react-state-event'
       },
-      undefined
+      'test'
     );
   });
 
   test('should call the error handler when message says no success', async () => {
-    const stateEvents = new ExternalStateEvents(0, 'example');
+    const stateEvents = new ExternalStateEvents(0, 'example_only');
     const errorHandler = jest.fn();
     stateEvents.subscribe(undefined, errorHandler);
+
+    const mockMessageEvent = {
+      origin: window.origin,
+      source: window,
+      data: {
+        type: 'react-state-event',
+        name: 'example_only',
+        success: false,
+        payload: 'An error occurred'
+      }
+    };
+
+    act(() => {
+      window.addEventListener.mock.calls[0][1](mockMessageEvent);
+    });
+    jest.runAllTimers();
+
+    expect(errorHandler).toHaveBeenCalledWith('An error occurred');
+  });
+
+  test('should throw when message says no success and no error handler', async () => {
+    const stateEvents = new ExternalStateEvents(0, 'example');
+    stateEvents.subscribe(undefined);
 
     const mockMessageEvent = {
       origin: window.origin,
@@ -127,12 +165,13 @@ describe('ExternalStateEvents', () => {
       }
     };
 
-    act(() => {
-      window.addEventListener.mock.calls[0][1](mockMessageEvent);
-    });
+    const wrappedCallback = window.addEventListener.mock.calls[0][1];
+    const t = () => {
+      wrappedCallback(mockMessageEvent);
+    };
     jest.runAllTimers();
 
-    expect(errorHandler).toHaveBeenCalledWith('An error occurred');
+    expect(t).toThrow('An error occurred');
   });
 
   test('should send a message with error when error is called', async () => {
@@ -152,7 +191,7 @@ describe('ExternalStateEvents', () => {
         success: false,
         type: 'react-state-event'
       },
-      undefined
+      'test'
     );
   });
 
@@ -222,20 +261,17 @@ describe('ExternalStateEvents', () => {
 });
 
 describe('useStateEvents', () => {
-  test('should return the initial value and update when stateEvents publishes', () => {
+  test('should return the initial value and update when stateEvents publishes', async () => {
     const stateEvents = new StateEvents(0);
     const { result } = renderHook(() => useStateEvents(stateEvents));
-
     expect(result.current[0]).toBe(0);
-
     act(() => {
       result.current[1](42);
     });
-
     expect(result.current[0]).toBe(42);
   });
 
-  test('should handle errors when onError is provided', () => {
+  test('should handle errors when onError is provided', async () => {
     const stateEvents = new StateEvents(0);
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
     renderHook(() => useStateEvents(stateEvents, console.error));

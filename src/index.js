@@ -190,11 +190,18 @@ export class ExternalStateEvents {
       } else {
         if (onError) {
           onError(event.data.payload);
+        } else {
+          throw event.data.payload;
         }
       }
     };
-    this.handlers.push({ callback, wrappedCallback, onError });
-    window.addEventListener('message', wrappedCallback, true);
+    const boundWrappedCallback = wrappedCallback.bind(this);
+    this.handlers.push({
+      callback,
+      wrappedCallback: boundWrappedCallback,
+      onError
+    });
+    window.addEventListener('message', boundWrappedCallback, true);
   }
 
   isInitialized() {
@@ -306,11 +313,6 @@ export const useStateEvents = (stateEvents, onError) => {
   }, []);
   const newSetValue = (state) => stateEvents.publish(state);
   return [value, newSetValue];
-};
-
-useStateEvents.propTypes = {
-  stateEvents: PropTypes.object.isRequired,
-  onError: PropTypes.func
 };
 
 export const Subscription = ({ stateEvents, children, onError }) => {
