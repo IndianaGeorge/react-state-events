@@ -1,75 +1,8 @@
-import React from 'react';
-import { render, renderHook, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom/extend-expect';
 import { act } from 'react-dom/test-utils';
-import {
-  StateEvents,
-  ExternalStateEvents,
-  useStateEvents,
-  Subscription
-} from './index';
+import { ExternalStateEvents } from './index';
 
 jest.useFakeTimers();
-
-describe('StateEvents', () => {
-  test('should call the handler when publish is called', () => {
-    const stateEvents = new StateEvents(0);
-    const handler = jest.fn();
-    stateEvents.subscribe(handler);
-
-    stateEvents.publish(42);
-
-    expect(handler).toHaveBeenCalledWith(42);
-  });
-
-  test('should call the error handler when error is called', () => {
-    const stateEvents = new StateEvents(0);
-    const errorHandler = jest.fn();
-    stateEvents.subscribe(undefined, errorHandler);
-
-    stateEvents.error('An error occurred');
-
-    expect(errorHandler).toHaveBeenCalledWith('An error occurred');
-  });
-
-  test('should throw when error is called with no error handler', () => {
-    const stateEvents = new StateEvents(0);
-    stateEvents.subscribe(undefined);
-
-    const t = () => {
-      stateEvents.error('An error occurred');
-    };
-    expect(t).toThrow('An error occurred');
-  });
-
-  test('should unsubscribe a callback', () => {
-    const stateEvents = new StateEvents(0);
-    const handler1 = jest.fn();
-    const handler2 = jest.fn();
-    stateEvents.subscribe(handler1);
-    stateEvents.subscribe(handler2);
-
-    stateEvents.unsubscribe(handler1);
-    stateEvents.publish(42);
-
-    expect(handler1).not.toHaveBeenCalled();
-    expect(handler2).toHaveBeenCalledWith(42);
-  });
-
-  test('should unsubscribe all callbacks', () => {
-    const stateEvents = new StateEvents(0);
-    const handler1 = jest.fn();
-    const handler2 = jest.fn();
-    stateEvents.subscribe(handler1);
-    stateEvents.subscribe(handler2);
-
-    stateEvents.unsubscribeAll();
-    stateEvents.publish(42);
-
-    expect(handler1).not.toHaveBeenCalled();
-    expect(handler2).not.toHaveBeenCalled();
-  });
-});
 
 describe('ExternalStateEvents', () => {
   beforeEach(() => {
@@ -311,69 +244,5 @@ describe('ExternalStateEvents', () => {
 
     expect(handler1).toHaveBeenCalledWith(42);
     expect(handler2).toHaveBeenCalledWith(42);
-  });
-});
-
-describe('useStateEvents', () => {
-  test('should return the initial value and update when stateEvents publishes', async () => {
-    const stateEvents = new StateEvents(0);
-    const { result } = renderHook(() => useStateEvents(stateEvents));
-    expect(result.current[0]).toBe(0);
-    act(() => {
-      result.current[1](42);
-    });
-    expect(result.current[0]).toBe(42);
-  });
-
-  test('should handle errors when onError is provided', async () => {
-    const stateEvents = new StateEvents(0);
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-    renderHook(() => useStateEvents(stateEvents, console.error));
-
-    act(() => {
-      stateEvents.error('An error occurred');
-    });
-
-    expect(errorSpy).toHaveBeenCalledWith('An error occurred');
-    errorSpy.mockRestore();
-  });
-});
-
-describe('Subscription', () => {
-  test('renders the child component with the current value', async () => {
-    const stateEvents = new StateEvents(0, 'example');
-    const ChildComponent = (value) => <div>{value}</div>;
-
-    const { getByText } = render(
-      <Subscription stateEvents={stateEvents}>{ChildComponent}</Subscription>
-    );
-
-    await waitFor(() => {
-      expect(getByText('0')).toBeInTheDocument();
-    });
-    act(() => {
-      stateEvents.publish(42);
-    });
-
-    expect(getByText('42')).toBeInTheDocument();
-  });
-
-  test('should handle errors when onError is provided', () => {
-    const stateEvents = new StateEvents(0);
-    const ChildComponent = (value) => <div>{value}</div>;
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-    render(
-      <Subscription stateEvents={stateEvents} onError={console.error}>
-        {ChildComponent}
-      </Subscription>
-    );
-
-    act(() => {
-      stateEvents.error('An error occurred');
-    });
-
-    expect(errorSpy).toHaveBeenCalledWith('An error occurred');
-    errorSpy.mockRestore();
   });
 });
