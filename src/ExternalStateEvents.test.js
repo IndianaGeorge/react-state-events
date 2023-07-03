@@ -245,4 +245,14 @@ describe('ExternalStateEvents', () => {
     expect(handler1).toHaveBeenCalledWith(42);
     expect(handler2).toHaveBeenCalledWith(42);
   });
+
+  test('should initialize with initial value after timeout', async () => {
+    const stateEvents = new ExternalStateEvents(42, 'previous');
+    jest.runAllTimers();
+    const isInitialized = stateEvents.isInitialized();
+    const current = stateEvents.getCurrent();
+
+    expect(isInitialized).toBeTruthy();
+    expect(current).toBe(42);
+  });
 });
