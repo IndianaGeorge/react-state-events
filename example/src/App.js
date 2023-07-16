@@ -3,6 +3,7 @@ import { StateEvents, ExternalStateEvents } from 'react-state-events';
 
 import FromHook from './UI/FromHook';
 import FromComponent from './UI/FromComponent';
+import MountOnClick from './UI/MountOnClick';
 import styles from './App.module.css';
 
 export default () => {
@@ -21,11 +22,15 @@ export default () => {
           <div>
             <div className={styles.type}>
               <h2>useStateEvents hook</h2>
+              <MountOnClick>
                 <FromHook stateEvents={counterEvents} />
+              </MountOnClick>
             </div>
             <div className={styles.type}>
               <h2>Subscription class</h2>
-              <FromComponent stateEvents={counterEvents} />
+              <MountOnClick>
+                <FromComponent stateEvents={counterEvents} />
+              </MountOnClick>
             </div>
           </div>
         </div>
@@ -34,12 +39,16 @@ export default () => {
           <h1>ExternalStateEvents</h1>
           <div>
             <div className={styles.type}>
-            <h2>useStateEvents hook</h2>
-              <FromHook stateEvents={extCounterEventsA} />
+              <h2>useStateEvents hook</h2>
+              <MountOnClick>
+                <FromHook stateEvents={extCounterEventsA} />
+              </MountOnClick>
             </div>
             <div className={styles.type}>
-            <h2>Subscription class</h2>
-              <FromComponent stateEvents={extCounterEventsB} />
+              <h2>Subscription class</h2>
+              <MountOnClick>
+                <FromComponent stateEvents={extCounterEventsB} />
+              </MountOnClick>
             </div>
           </div>
         </div>

@@ -3,8 +3,8 @@ let streamCounter = 0;
 export default class StateEvents {
   constructor(initial, debugName) {
     this.current = initial;
-    const finalDebugName = debugName || 'Anonymous';
     const streamId = String(++streamCounter);
+    const finalDebugName = debugName || `${streamId}`;
     this.streamId = streamId;
     if (
       process.env.NODE_ENV !== 'production' ||

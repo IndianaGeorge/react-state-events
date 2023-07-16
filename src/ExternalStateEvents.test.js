@@ -41,7 +41,7 @@ describe('ExternalStateEvents', () => {
   });
 
   test('should send a message when publish is called', async () => {
-    const stateEvents = new ExternalStateEvents(0, 'previous');
+    const stateEvents = new ExternalStateEvents(0, 'example');
 
     act(() => {
       stateEvents.publish(42);
@@ -50,7 +50,7 @@ describe('ExternalStateEvents', () => {
 
     expect(window.postMessage).toHaveBeenCalledWith(
       {
-        name: 'previous',
+        name: 'example',
         payload: 42,
         success: true,
         type: 'react-state-event'
@@ -60,7 +60,7 @@ describe('ExternalStateEvents', () => {
   });
 
   test('should call the error handler when message says no success', async () => {
-    const stateEvents = new ExternalStateEvents(0, 'example_only');
+    const stateEvents = new ExternalStateEvents(0, 'example');
     const errorHandler = jest.fn();
     stateEvents.subscribe(undefined, errorHandler);
 
@@ -69,7 +69,7 @@ describe('ExternalStateEvents', () => {
       source: window,
       data: {
         type: 'react-state-event',
-        name: 'example_only',
+        name: 'example',
         success: false,
         payload: 'An error occurred'
       }
@@ -84,7 +84,7 @@ describe('ExternalStateEvents', () => {
   });
 
   test('should call error handler when message handler throws', async () => {
-    const stateEvents = new ExternalStateEvents(0, 'example_only');
+    const stateEvents = new ExternalStateEvents(0, 'example');
     const handler = jest.fn().mockImplementation(() => {
       // eslint-disable-next-line no-throw-literal
       throw 'An error occurred';
@@ -97,7 +97,7 @@ describe('ExternalStateEvents', () => {
       source: window,
       data: {
         type: 'react-state-event',
-        name: 'example_only',
+        name: 'example',
         success: true,
         payload: 42
       }
@@ -112,7 +112,7 @@ describe('ExternalStateEvents', () => {
   });
 
   test('should throw error when message handler throws and no error handler', async () => {
-    const stateEvents = new ExternalStateEvents(0, 'example_only');
+    const stateEvents = new ExternalStateEvents(0, 'example');
     const handler = jest.fn().mockImplementation(() => {
       // eslint-disable-next-line no-throw-literal
       throw 'An error occurred';
@@ -124,7 +124,7 @@ describe('ExternalStateEvents', () => {
       source: window,
       data: {
         type: 'react-state-event',
-        name: 'example_only',
+        name: 'example',
         success: true,
         payload: 42
       }
@@ -200,17 +200,15 @@ describe('ExternalStateEvents', () => {
       }
     };
 
+    expect(window.addEventListener).toHaveBeenCalledTimes(1);
+    stateEvents.unsubscribe(handler1);
+    expect(window.removeEventListener).not.toHaveBeenCalled();
     act(() => {
-      stateEvents.unsubscribe(handler1);
-      window.addEventListener.mock.calls[1][1](mockMessageEvent);
+      window.addEventListener.mock.calls[0][1](mockMessageEvent);
     });
     jest.runAllTimers();
 
-    // expect(handler1).not.toHaveBeenCalled();
-    expect(window.addEventListener.mock.calls[0][1]).toBe(
-      window.removeEventListener.mock.calls[0][1]
-    );
-    expect(handler2).toHaveBeenCalledWith(42);
+    expect(handler1).toHaveBeenCalledWith(42);
   });
 
   test('should unsubscribe all callbacks', async () => {
@@ -220,35 +218,44 @@ describe('ExternalStateEvents', () => {
     stateEvents.subscribe(handler1);
     stateEvents.subscribe(handler2);
     stateEvents.unsubscribeAll();
+    stateEvents.publish(42);
+
+    expect(window.addEventListener).toHaveBeenCalledTimes(1);
+    expect(window.removeEventListener).toHaveBeenCalledTimes(1);
+    expect(handler1).not.toHaveBeenCalledWith(42);
+    expect(handler2).not.toHaveBeenCalledWith(42);
+  });
+
+  test('should request and use initialization value', async () => {
+    const stateEvents = new ExternalStateEvents(0, 'example');
+    const handler = jest.fn();
+    stateEvents.subscribe(handler);
+
+    expect(window.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'react-state-event-initrequest',
+        name: 'example',
+        timing: expect.any(Number)
+      }),
+      'test'
+    );
 
     const mockMessageEvent = {
       origin: window.origin,
       source: window,
       data: {
-        type: 'react-state-event',
+        type: 'react-state-event-initresponse',
         name: 'example',
         success: true,
         payload: 42
       }
     };
 
-    const addEventListenerCalls = window.addEventListener.mock.calls;
-    addEventListenerCalls.forEach(([eventType, callback, useCapture]) => {
-      callback(mockMessageEvent);
-      expect(window.removeEventListener).toHaveBeenCalledWith(
-        eventType,
-        callback,
-        useCapture
-      );
+    act(() => {
+      window.addEventListener.mock.calls[0][1](mockMessageEvent);
     });
-
-    expect(handler1).toHaveBeenCalledWith(42);
-    expect(handler2).toHaveBeenCalledWith(42);
-  });
-
-  test('should initialize with initial value after timeout', async () => {
-    const stateEvents = new ExternalStateEvents(42, 'previous');
     jest.runAllTimers();
+
     const isInitialized = stateEvents.isInitialized();
     const current = stateEvents.getCurrent();
 
