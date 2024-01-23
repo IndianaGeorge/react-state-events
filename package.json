@@ -4,7 +4,10 @@
   "description": "Event based state for React.js",
   "author": "IndianaGeorge",
   "license": "MIT",
-  "repository": "IndianaGeorge/react-state-events",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IndianaGeorge/react-state-events.git"
+  },
   "main": "dist/index.js",
   "module": "dist/index.modern.js",
   "source": "src/index.js",
