@@ -1,7 +1,7 @@
 const initTimeoutMiliseconds = 500;
 
 export default class ExternalStateEvents {
-  constructor(initial, name) {
+  constructor(initial, name, allowDebug = false) {
     this.current = initial;
     this.name = name;
     this.initTimer = null;
@@ -9,6 +9,13 @@ export default class ExternalStateEvents {
     this.callbacks = [];
     this.handler = null;
     this.nape = name;
+    const boolAllowDebug = !!allowDebug;
+    this.allowDebug =
+      boolAllowDebug ||
+      (typeof process !== 'undefined' &&
+        (process.env?.NODE_ENV !== 'production' ||
+          process.env?.REACT_STATE_EVENT_DEVTOOL === 'true' ||
+          process.env?.REACT_APP_REACT_STATE_EVENT_DEVTOOL === 'true'));
   }
 
   subscribe(callback, onError) {
@@ -85,7 +92,8 @@ export default class ExternalStateEvents {
         {
           type: 'react-state-event-initrequest',
           name: this.name,
-          timing: Date.now()
+          timing: Date.now(),
+          init: this.current
         },
         window.origin
       );
@@ -157,10 +165,7 @@ export default class ExternalStateEvents {
       },
       window.origin
     );
-    if (
-      process.env.NODE_ENV !== 'production' ||
-      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
-    ) {
+    if (this.allowDebug) {
       window.postMessage(
         {
           type: 'react-state-event-devTool-notify',
@@ -186,10 +191,7 @@ export default class ExternalStateEvents {
       },
       window.origin
     );
-    if (
-      process.env.NODE_ENV !== 'production' ||
-      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
-    ) {
+    if (this.allowDebug) {
       window.postMessage(
         {
           type: 'react-state-event-devTool-notify',

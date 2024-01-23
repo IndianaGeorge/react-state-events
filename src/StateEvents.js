@@ -1,21 +1,26 @@
 let streamCounter = 0;
 
 export default class StateEvents {
-  constructor(initial, debugName) {
+  constructor(initial, debugName = false, allowDebug = false) {
     this.current = initial;
     const streamId = String(++streamCounter);
     const finalDebugName = debugName || `${streamId}`;
     this.streamId = streamId;
-    if (
-      process.env.NODE_ENV !== 'production' ||
-      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
-    ) {
+    const boolAllowDebug = !!allowDebug;
+    this.allowDebug =
+      boolAllowDebug ||
+      (typeof process !== 'undefined' &&
+        (process.env?.NODE_ENV !== 'production' ||
+          process.env?.REACT_STATE_EVENT_DEVTOOL === 'true' ||
+          process.env?.REACT_APP_REACT_STATE_EVENT_DEVTOOL === 'true'));
+    if (this.allowDebug) {
       setTimeout(function () {
         window.postMessage(
           {
             type: 'react-state-event-devTool-streamId',
             payload: finalDebugName,
-            id: streamId
+            id: streamId,
+            init: initial
           },
           '*'
         );
@@ -56,10 +61,7 @@ export default class StateEvents {
 
   publish(data) {
     this.current = data;
-    if (
-      process.env.NODE_ENV !== 'production' ||
-      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
-    ) {
+    if (this.allowDebug) {
       window.postMessage(
         {
           type: 'react-state-event-devTool-notify',
@@ -77,10 +79,7 @@ export default class StateEvents {
   }
 
   error(err) {
-    if (
-      process.env.NODE_ENV !== 'production' ||
-      process.env.REACT_STATE_EVENT_DEVTOOL === 'true'
-    ) {
+    if (this.allowDebug) {
       window.postMessage(
         {
           type: 'react-state-event-devTool-notify',

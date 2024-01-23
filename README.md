@@ -19,20 +19,23 @@
 npm install --save react-state-events
 ```
 
+> It's recommended to also install the [react-state-event devtool](https://chromewebstore.google.com/detail/react-state-event-devtool/abiphondclhikplkmjmnnaoaldmeocoo) Chrome extension.
+
 ## What is this?
 This is a collection of tools to help you lift React state.
 - StateEvents: a class to publish and subscribe to.
-- ExternalStateEvents: same as above, but can communicate without having the original instance (useful with micro-frontends).
-- useStateEvents: a hook to publish data and update your component when data arrives.
+- ExternalStateEvents: same as above, but communicates through a name without having the original instance (useful with micro-frontends).
+- useStateEvents: a React hook to publish data and update your component when data arrives.
 - Subscription: a component that will update when data arrives.
 
 ## How is it useful?
-- It allows you to decouple data handling from react components, in a pattern similar to MVC.
+- It allows you to decouple data handling from React components, in a pattern similar to MVC.
 - It lets you put all the data handling code in a single class, so it's easier to test and maintain.
 - It lets your React components be solely about user interface, so they're simpler to read
 - It lets you handle state in a modular way, so you may bring code to another project untouched, without having to worry about how it fits into the global state or component hierarchy.
 - It lets you control instances yourself, so you could have more than one and choose which instance gets passed to which component, without modifying the code that handles the data.
 - It does the above using very little code.
+- There is a companion extension to debug your event streams in development builds.
 
 ## Using the StateEvents class
 **Advantages**
@@ -207,6 +210,15 @@ Where:
 * name is the global name of the stream.
 * success is true for success, false for error (which triggers registered error handlers).
 * payload is the state that will be sent in the event.
+
+## How do I use the react-state-event devtool extension with my code?
+The extension will be able to collect data from an application using the library when any of the following conditions is met:
+* The constructor was passed a third parameter of true
+    * const es = new StateEvents(0, 'myStreamName', true);
+    * const es = new ExternalStateEvents(0, 'myStreamName', true);
+* It's a development build (`process.env.NODE_ENV` exists and it's not `production`)
+* Environment variable `process.env.REACT_STATE_EVENT_DEVTOOL` exists as `true`
+* Environment variable `process.env.REACT_APP_REACT_STATE_EVENT_DEVTOOL` exists as `true`
 
 ## Is lifting state using `ExternalStateEvents` safer than using `LocalStorage`?
 * Messages are scoped to the window that emitted them.
