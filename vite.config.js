@@ -13,5 +13,8 @@ export default defineConfig({
             entry: resolve(__dirname, 'src/index.js'),
             formats: ['es', 'cjs'],
         },
+        rollupOptions: {
+            external: ['react', 'react/jsx-runtime'],
+        },
     },
 });
