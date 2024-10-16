@@ -10,12 +10,11 @@ export default class ExternalStateEvents {
     this.handler = null;
     this.nape = name;
     const boolAllowDebug = !!allowDebug;
-    this.allowDebug =
-      boolAllowDebug ||
-      (typeof process !== 'undefined' &&
-        (process.env?.NODE_ENV !== 'production' ||
-          process.env?.REACT_STATE_EVENT_DEVTOOL === 'true' ||
-          process.env?.REACT_APP_REACT_STATE_EVENT_DEVTOOL === 'true'));
+    this.allowDebug = boolAllowDebug &&
+      globalThis?.window?.postMessage &&
+      globalThis?.window?.addEventListener &&
+      globalThis?.window?.removeEventListener &&
+      globalThis?.window?.origin;
   }
 
   subscribe(callback, onError) {
@@ -23,8 +22,8 @@ export default class ExternalStateEvents {
     if (this.callbacks.length === 1) {
       const wrappedCallback = (event) => {
         if (
-          event.origin !== window.origin ||
-          event.source !== window ||
+          event.origin !== globalThis.window?.origin ||
+          event.source !== globalThis.window ||
           event.data.name !== this.name
         ) {
           return;
@@ -46,7 +45,7 @@ export default class ExternalStateEvents {
             if (this.isInitialized()) {
               if (this.timestamp < event.data.timing) {
                 // we initialized before request, so respond
-                window.postMessage(
+                globalThis.window?.postMessage(
                   {
                     type: 'react-state-event-initresponse',
                     name: this.name,
@@ -54,7 +53,7 @@ export default class ExternalStateEvents {
                     payload: this.current,
                     timing: this.timing
                   },
-                  window.origin
+                  globalThis.window?.origin
                 );
               }
             }
@@ -87,15 +86,15 @@ export default class ExternalStateEvents {
         wrappedCallback: boundWrappedCallback,
         onError
       };
-      window.addEventListener('message', boundWrappedCallback, true);
-      window.postMessage(
+      globalThis.window?.addEventListener('message', boundWrappedCallback, true);
+      globalThis.window?.postMessage(
         {
           type: 'react-state-event-initrequest',
           name: this.name,
           timing: Date.now(),
           init: this.current
         },
-        window.origin
+        globalThis.window?.origin
       );
       this.initTimer = setTimeout(() => {
         this.initialize();
@@ -133,7 +132,7 @@ export default class ExternalStateEvents {
       );
       if (this.callbacks.length === 0) {
         const { wrappedCallback } = this.handler;
-        window.removeEventListener('message', wrappedCallback, true);
+        globalThis.window?.removeEventListener('message', wrappedCallback, true);
         this.handler = null;
         this.uninitialize();
       }
@@ -143,7 +142,7 @@ export default class ExternalStateEvents {
   unsubscribeAll() {
     if (this.handler) {
       const { wrappedCallback } = this.handler;
-      window.removeEventListener('message', wrappedCallback, true);
+      globalThis.window?.removeEventListener('message', wrappedCallback, true);
       this.callbacks = [];
       this.handler = null;
       this.uninitialize();
@@ -156,17 +155,17 @@ export default class ExternalStateEvents {
 
   publish(data) {
     this.current = data;
-    window.postMessage(
+    globalThis.window?.postMessage(
       {
         type: 'react-state-event',
         name: this.name,
         success: true,
         payload: data
       },
-      window.origin
+      globalThis.window?.origin
     );
     if (this.allowDebug) {
-      window.postMessage(
+      globalThis.window?.postMessage(
         {
           type: 'react-state-event-devTool-notify',
           payload: {
@@ -182,17 +181,17 @@ export default class ExternalStateEvents {
   }
 
   error(err) {
-    window.postMessage(
+    globalThis.window?.postMessage(
       {
         type: 'react-state-event',
         name: this.name,
         success: false,
         payload: err
       },
-      window.origin
+      globalThis.window?.origin
     );
     if (this.allowDebug) {
-      window.postMessage(
+      globalThis.window?.postMessage(
         {
           type: 'react-state-event-devTool-notify',
           payload: {

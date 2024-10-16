@@ -12,9 +12,6 @@ export default () => {
   const extCounterEventsB = new ExternalStateEvents(0,"counter");
   return (
     <div>
-      <span className={styles.mode}>
-        {process.env.NODE_ENV !== 'production'?'development mode':'production mode'}
-      </span>
       <div className={styles.app}>
 
         <div className={styles.context}>

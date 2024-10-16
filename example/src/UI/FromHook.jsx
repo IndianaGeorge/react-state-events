@@ -7,9 +7,7 @@ export default ({stateEvents})=>{
     const onError = (err)=>{
         console.log('FromHook handled error:',err);
     };
-    console.warn('checkpoint before', useStateEvents, stateEvents);
     const [val,setVal] = useStateEvents(stateEvents,onError);
-    console.warn('checkpoint after');
     const onClick = ()=>setVal(val+1);
     return (
         <div className={styles.block}>
