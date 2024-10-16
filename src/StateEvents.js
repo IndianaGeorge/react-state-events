@@ -7,13 +7,10 @@ export default class StateEvents {
     const finalDebugName = debugName || `${streamId}`;
     this.streamId = streamId;
     const boolAllowDebug = !!allowDebug;
-    this.allowDebug = boolAllowDebug &&
-      globalThis?.window?.postMessage &&
-      globalThis?.window?.addEventListener &&
-      globalThis?.window?.origin;
+    this.allowDebug = boolAllowDebug && typeof window !== 'undefined';
     if (this.allowDebug) {
       setTimeout(function () {
-        globalThis.window?.postMessage(
+        window.postMessage(
           {
             type: 'react-state-event-devTool-streamId',
             payload: finalDebugName,
@@ -23,10 +20,10 @@ export default class StateEvents {
           '*'
         );
       }, 1000);
-      globalThis.window?.addEventListener('message', (event) => {
+      window.addEventListener('message', (event) => {
         if (
-          event.origin !== globalThis.window?.origin ||
-          event.source !== globalThis.window ||
+          event.origin !== window.origin ||
+          event.source !== window ||
           event.data.type !== 'react-state-event-devTool-set' ||
           event.data.id !== this.streamId
         ) {
@@ -60,7 +57,7 @@ export default class StateEvents {
   publish(data) {
     this.current = data;
     if (this.allowDebug) {
-      globalThis.window?.postMessage(
+      window.postMessage(
         {
           type: 'react-state-event-devTool-notify',
           payload: {
@@ -78,7 +75,7 @@ export default class StateEvents {
 
   error(err) {
     if (this.allowDebug) {
-      globalThis.window?.postMessage(
+      window.postMessage(
         {
           type: 'react-state-event-devTool-notify',
           payload: {
