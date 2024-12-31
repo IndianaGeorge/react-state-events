@@ -1,6 +1,9 @@
 {
   "files": [],
-  "include": ["src", "lib"],
+  "include": ["src"],
+  "exclude": [
+    "./vite.config.ts",
+  ],
   "references": [
     { "path": "./tsconfig.app.json" },
     { "path": "./tsconfig.node.json" }

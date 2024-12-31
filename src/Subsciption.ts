@@ -1,12 +1,20 @@
-import { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import type { IStateEvents, IErrorCallback } from './types/StateEvents';
 
-export default function Subscription({ stateEvents, children, onError }) {
+import { useState, useEffect } from 'react';
+import * as PropTypes from 'prop-types';
+
+type subscriptionParameterType<T> = {
+  stateEvents: IStateEvents<T>;
+  children: Function;
+  onError: IErrorCallback;
+}
+
+export default function Subscription<T>({ stateEvents, children, onError }: subscriptionParameterType<T>) {
   const [value, setValue] = useState(stateEvents.getCurrent());
   useEffect(() => {
-    const callback = (data) => setValue(data);
+    const callback = (data: T) => setValue(data);
     if (onError) {
-      const errorHandler = (err) => onError(err);
+      const errorHandler = (err: Error) => onError(err);
       stateEvents.subscribe(callback, errorHandler);
     } else {
       stateEvents.subscribe(callback);

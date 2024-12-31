@@ -1,7 +1,18 @@
+import type { IStateEvents, ICallback, IErrorCallback } from './types/StateEvents';
+import type { IMessageHandler } from './types/EventHandlers';
+
 const initTimeoutMiliseconds = 500;
 
-export default class ExternalStateEvents {
-  constructor(initial, name, allowDebug = false) {
+export default class ExternalStateEvents<T> implements IStateEvents<T> {
+  current: T;
+  name: string;
+  initTimer: ReturnType<typeof setTimeout> | null;
+  timestamp: number | null;
+  callbacks: {callback: ICallback<T>, onError: IErrorCallback | null}[];
+  handler: {callback: ICallback<T>, wrappedCallback: IMessageHandler, onError: IErrorCallback | null} | null;
+  allowDebug: boolean;
+  timing: any;
+  constructor(initial: T, name: string, allowDebug = false) {
     this.current = initial;
     this.name = name;
     this.initTimer = null;
@@ -11,10 +22,10 @@ export default class ExternalStateEvents {
     this.allowDebug = allowDebug && typeof window !== 'undefined';
   }
 
-  subscribe(callback, onError) {
+  subscribe(callback: ICallback<T>, onError: IErrorCallback | null = null) {
     this.callbacks.push({ callback, onError });
     if (this.callbacks.length === 1 && typeof window !== 'undefined') {
-      const wrappedCallback = (event) => {
+      const wrappedCallback = (event: MessageEvent) => {
         if (
           typeof window !== 'undefined' && (
             event.origin !== window?.origin ||
@@ -39,7 +50,7 @@ export default class ExternalStateEvents {
             break;
           case 'react-state-event-initrequest':
             if (this.isInitialized()) {
-              if (this.timestamp < event.data.timing) {
+              if (this.timestamp !== null && this.timestamp < event.data.timing) {
                 // we initialized before request, so respond
                 window.postMessage(
                   {
@@ -62,7 +73,7 @@ export default class ExternalStateEvents {
             this.current = event.data.payload;
             callback(event.data.payload);
           } catch (err) {
-            if (onError) {
+            if (onError && err instanceof Error) {
               onError(err);
             } else {
               throw err;
@@ -118,7 +129,7 @@ export default class ExternalStateEvents {
     }
   }
 
-  unsubscribe(callback) {
+  unsubscribe(callback: ICallback<T>) {
     const handler = this.callbacks.find(
       (handler) => handler.callback === callback
     );
@@ -127,7 +138,7 @@ export default class ExternalStateEvents {
         (handler) => handler.callback !== callback
       );
       if (this.callbacks.length === 0 && typeof window !== 'undefined') {
-        const { wrappedCallback } = this.handler;
+        const { wrappedCallback } = this.handler!;
         window.removeEventListener('message', wrappedCallback, true);
         this.handler = null;
         this.uninitialize();
@@ -149,7 +160,7 @@ export default class ExternalStateEvents {
     return this.current;
   }
 
-  publish(data) {
+  publish(data: T) {
     this.current = data;
     if (typeof window !== 'undefined') {
       window.postMessage(
@@ -178,7 +189,7 @@ export default class ExternalStateEvents {
     }
   }
 
-  error(err) {
+  error(err: Error) {
     if (typeof window !== 'undefined') {
       window.postMessage(
         {

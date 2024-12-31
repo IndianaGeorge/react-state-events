@@ -1,5 +1,5 @@
 import React from 'react';
-import { StateEvents, ExternalStateEvents } from 'react-state-events';
+import { LocalStateEvents, ExternalStateEvents } from 'react-state-events';
 
 import FromHook from './UI/FromHook';
 import FromComponent from './UI/FromComponent';
@@ -7,7 +7,7 @@ import MountOnClick from './UI/MountOnClick';
 import styles from './App.module.css';
 
 export default () => {
-  const counterEvents = new StateEvents(0,"single counter", true)
+  const counterEvents = new LocalStateEvents(0,"single counter", true);
   const extCounterEventsA = new ExternalStateEvents(0,"counter", true);
   const extCounterEventsB = new ExternalStateEvents(0,"counter", true);
   return (

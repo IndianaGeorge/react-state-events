@@ -6,6 +6,9 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "composite": true,
+    "sourceMap": false,
+    "declaration": true,
+    "outDir": "lib",
 
     /* Bundler mode */
     "moduleResolution": "node",

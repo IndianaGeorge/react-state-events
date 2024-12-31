@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom/extend-expect';
-import { StateEvents } from './index';
+import { LocalStateEvents } from './index';
 
-describe('StateEvents', () => {
+describe('LocalStateEvents', () => {
   test('should call the handler when publish is called', () => {
-    const stateEvents = new StateEvents(0);
+    const stateEvents = new LocalStateEvents(0);
     const handler = jest.fn();
     stateEvents.subscribe(handler);
 
@@ -13,7 +13,7 @@ describe('StateEvents', () => {
   });
 
   test('should call the error handler when error is called', () => {
-    const stateEvents = new StateEvents(0);
+    const stateEvents = new LocalStateEvents(0);
     const errorHandler = jest.fn();
     stateEvents.subscribe(undefined, errorHandler);
 
@@ -23,7 +23,7 @@ describe('StateEvents', () => {
   });
 
   test('should throw when error is called with no error handler', () => {
-    const stateEvents = new StateEvents(0);
+    const stateEvents = new LocalStateEvents(0);
     stateEvents.subscribe(undefined);
 
     const t = () => {
@@ -33,7 +33,7 @@ describe('StateEvents', () => {
   });
 
   test('should unsubscribe a callback', () => {
-    const stateEvents = new StateEvents(0);
+    const stateEvents = new LocalStateEvents(0);
     const handler1 = jest.fn();
     const handler2 = jest.fn();
     stateEvents.subscribe(handler1);
@@ -47,7 +47,7 @@ describe('StateEvents', () => {
   });
 
   test('should unsubscribe all callbacks', () => {
-    const stateEvents = new StateEvents(0);
+    const stateEvents = new LocalStateEvents(0);
     const handler1 = jest.fn();
     const handler2 = jest.fn();
     stateEvents.subscribe(handler1);

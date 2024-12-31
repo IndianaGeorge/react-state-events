@@ -1,19 +1,21 @@
-import { useState, useEffect } from 'react';
-import PropTypes from 'prop-types';
+import type { IStateEvents, IErrorCallback } from './types/StateEvents';
 
-export default function useStateEvents(stateEvents, onError) {
+import { useState, useEffect } from 'react';
+import * as PropTypes from 'prop-types';
+
+export default function useStateEvents<T>(stateEvents: IStateEvents<T>, onError: IErrorCallback) {
   const [value, setValue] = useState(stateEvents.getCurrent());
   useEffect(() => {
-    const callback = (data) => setValue(data);
+    const callback = (data: T) => setValue(data);
     if (onError) {
-      const errorHandler = (err) => onError(err);
+      const errorHandler = (err: Error) => onError(err);
       stateEvents.subscribe(callback, errorHandler);
     } else {
       stateEvents.subscribe(callback);
     }
     return () => stateEvents.unsubscribe(callback);
   }, []);
-  const newSetValue = (state) => stateEvents.publish(state);
+  const newSetValue = (state: T) => stateEvents.publish(state);
   return [value, newSetValue];
 }
 

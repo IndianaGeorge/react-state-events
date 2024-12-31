@@ -1,9 +1,12 @@
-let streamCounter = 0;
+import type { IStateEvents, ICallback, IErrorCallback } from "./types/StateEvents";
 
-export default class StateEvents {
-  constructor(initial, debugName = false, allowDebug = false) {
+export default class LocalStateEvents<T> implements IStateEvents<T> {
+  current: T;
+  streamId: string;
+  allowDebug: boolean;
+  constructor(initial: T, debugName: boolean = false, allowDebug: boolean = false) {
     this.current = initial;
-    const streamId = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
+    const streamId = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(8))));
     const finalDebugName = debugName || `${streamId}`;
     this.streamId = streamId;
     this.allowDebug = allowDebug && typeof window !== 'undefined';
@@ -13,6 +16,12 @@ export default class StateEvents {
           {
             type: 'react-state-event-devTool-streamId',
             payload: finalDebugName,
+            /*
+            payload: {
+              debugName: finalDebugName,
+              streamType: 'LocalStateEvents',
+            },
+            */
             id: streamId,
             init: initial
           },
@@ -34,33 +43,33 @@ export default class StateEvents {
     }
   }
 
-  handlers = [];
-  subscribe(callback, onError) {
+  handlers: { callback: ICallback<T>, onError: IErrorCallback | null}[] = [];
+  subscribe(callback: ICallback<T>, onError: IErrorCallback | null = null): void {
     this.handlers.push({ callback, onError });
   }
 
-  unsubscribe(callback) {
+  unsubscribe(callback: ICallback<T>): void {
     this.handlers = this.handlers.filter(
       (handler) => handler.callback !== callback
     );
   }
 
-  unsubscribeAll() {
+  unsubscribeAll(): void {
     this.handlers = [];
   }
 
-  getCurrent() {
+  getCurrent(): T {
     return this.current;
   }
 
-  publish(data) {
+  publish(data: T): void {
     this.current = data;
     if (this.allowDebug) {
       window.postMessage(
         {
           type: 'react-state-event-devTool-notify',
           payload: {
-            streamType: 'StateEvents',
+            streamType: 'LocalStateEvents',
             streamId: this.streamId,
             success: true,
             value: data
@@ -72,13 +81,13 @@ export default class StateEvents {
     this.callHandlers(data);
   }
 
-  error(err) {
+  error(err: Error): void {
     if (this.allowDebug) {
       window.postMessage(
         {
           type: 'react-state-event-devTool-notify',
           payload: {
-            streamType: 'StateEvents',
+            streamType: 'LocalStateEvents',
             streamId: this.streamId,
             success: false,
             value: err
@@ -96,12 +105,12 @@ export default class StateEvents {
     });
   }
 
-  callHandlers(data) {
+  callHandlers(data: T): void {
     this.handlers.forEach((handler) => {
       try {
         handler.callback(data);
       } catch (err) {
-        if (handler.onError) {
+        if (handler.onError && err instanceof Error) {
           handler.onError(err);
         } else {
           throw err;

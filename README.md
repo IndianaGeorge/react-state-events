@@ -6,9 +6,13 @@
 
 [![NPM](https://img.shields.io/npm/v/react-state-events.svg)](https://www.npmjs.com/package/react-state-events)
 
+## Breaking changes from version 3.x
+- Now shipping type definitions! No change unless you use it in Typescript.
+- StateEvents class renamed to LocalStateEvents. You may now define your own StateEvents classes (ie: MyStateEvents) implementing the StateEvent interface and use them with the useStateEvents hook or Subscription class.
+- Error callbacks now can only take instances of Error.
+- Different instances of StateEvents will no longer get mixed up in the debugger, which avoids confusion when you have more than one copy of the library in your bundle. This may result in an unused stream being shown in the debugger in development mode because React renders twice. To avoid this, you can use a context.
 ## Breaking changes from version 2.x
 - Moved to React 18
-- Different instances of StateEvents will no longer get mixed up in the debugger, which avoids confusion when you have more than one copy of the library in your bundle. This may result in an unused stream being shown in the debugger in development mode because React renders twice. To avoid this, you can use a context.
 ## Breaking changes from version 1.x
 - StateEvents constructor now takes a value to initialize the class.
 - useStateEvents hook and Subscription class no longer pass an initial value, they will now receive the initial value or the last published value of the StateEvents instance.
