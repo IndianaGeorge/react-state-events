@@ -7,9 +7,9 @@ import MountOnClick from './UI/MountOnClick';
 import styles from './App.module.css';
 
 export default () => {
-  const counterEvents = new StateEvents(0,"single counter");
-  const extCounterEventsA = new ExternalStateEvents(0,"counter");
-  const extCounterEventsB = new ExternalStateEvents(0,"counter");
+  const counterEvents = new StateEvents(0,"single counter", true)
+  const extCounterEventsA = new ExternalStateEvents(0,"counter", true);
+  const extCounterEventsB = new ExternalStateEvents(0,"counter", true);
   return (
     <div>
       <div className={styles.app}>

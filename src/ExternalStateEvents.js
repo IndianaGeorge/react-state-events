@@ -8,7 +8,6 @@ export default class ExternalStateEvents {
     this.timestamp = null;
     this.callbacks = [];
     this.handler = null;
-    this.nape = name;
     const boolAllowDebug = !!allowDebug;
     this.allowDebug = boolAllowDebug && typeof window !== 'undefined';
   }

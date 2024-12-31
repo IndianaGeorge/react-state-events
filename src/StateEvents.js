@@ -3,7 +3,7 @@ let streamCounter = 0;
 export default class StateEvents {
   constructor(initial, debugName = false, allowDebug = false) {
     this.current = initial;
-    const streamId = String(++streamCounter);
+    const streamId = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
     const finalDebugName = debugName || `${streamId}`;
     this.streamId = streamId;
     const boolAllowDebug = !!allowDebug;
