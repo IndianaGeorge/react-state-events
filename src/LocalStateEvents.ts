@@ -15,13 +15,10 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
         window.postMessage(
           {
             type: 'react-state-event-devTool-streamId',
-            payload: finalDebugName,
-            /*
             payload: {
               debugName: finalDebugName,
               streamType: 'LocalStateEvents',
             },
-            */
             id: streamId,
             init: initial
           },
