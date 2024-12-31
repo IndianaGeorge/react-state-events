@@ -6,8 +6,7 @@ export default class StateEvents {
     const streamId = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32))));
     const finalDebugName = debugName || `${streamId}`;
     this.streamId = streamId;
-    const boolAllowDebug = !!allowDebug;
-    this.allowDebug = boolAllowDebug && typeof window !== 'undefined';
+    this.allowDebug = allowDebug && typeof window !== 'undefined';
     if (this.allowDebug) {
       setTimeout(function () {
         window.postMessage(

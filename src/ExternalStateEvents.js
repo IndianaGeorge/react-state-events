@@ -8,96 +8,93 @@ export default class ExternalStateEvents {
     this.timestamp = null;
     this.callbacks = [];
     this.handler = null;
-    const boolAllowDebug = !!allowDebug;
-    this.allowDebug = boolAllowDebug && typeof window !== 'undefined';
+    this.allowDebug = allowDebug && typeof window !== 'undefined';
   }
 
   subscribe(callback, onError) {
-    if (typeof window !== 'undefined') {
-      this.callbacks.push({ callback, onError });
-      if (this.callbacks.length === 1) {
-        const wrappedCallback = (event) => {
-          if (
-            typeof window !== 'undefined' && (
-              event.origin !== window?.origin ||
-              event.source !== window ||
-              event.data.name !== this.name
-            )
-          ) {
-            return;
-          }
-          switch (event.data.type) {
-            case 'react-state-event-initresponse':
-              if (event.data.success) {
-                if (this.isInitialized()) {
-                  return;
-                }
-                this.current = event.data.payload;
-                this.initialize();
-              }
-              break;
-            case 'react-state-event':
-              this.initialize();
-              break;
-            case 'react-state-event-initrequest':
+    this.callbacks.push({ callback, onError });
+    if (this.callbacks.length === 1 && typeof window !== 'undefined') {
+      const wrappedCallback = (event) => {
+        if (
+          typeof window !== 'undefined' && (
+            event.origin !== window?.origin ||
+            event.source !== window ||
+            event.data.name !== this.name
+          )
+        ) {
+          return;
+        }
+        switch (event.data.type) {
+          case 'react-state-event-initresponse':
+            if (event.data.success) {
               if (this.isInitialized()) {
-                if (this.timestamp < event.data.timing) {
-                  // we initialized before request, so respond
-                  window.postMessage(
-                    {
-                      type: 'react-state-event-initresponse',
-                      name: this.name,
-                      success: true,
-                      payload: this.current,
-                      timing: this.timing
-                    },
-                    window.origin
-                  );
-                }
+                return;
               }
-              return;
-            default:
-              return;
-          }
-          if (event.data.success) {
-            try {
               this.current = event.data.payload;
-              callback(event.data.payload);
-            } catch (err) {
-              if (onError) {
-                onError(err);
-              } else {
-                throw err;
+              this.initialize();
+            }
+            break;
+          case 'react-state-event':
+            this.initialize();
+            break;
+          case 'react-state-event-initrequest':
+            if (this.isInitialized()) {
+              if (this.timestamp < event.data.timing) {
+                // we initialized before request, so respond
+                window.postMessage(
+                  {
+                    type: 'react-state-event-initresponse',
+                    name: this.name,
+                    success: true,
+                    payload: this.current,
+                    timing: this.timing
+                  },
+                  window.origin
+                );
               }
             }
-          } else {
+            return;
+          default:
+            return;
+        }
+        if (event.data.success) {
+          try {
+            this.current = event.data.payload;
+            callback(event.data.payload);
+          } catch (err) {
             if (onError) {
-              onError(event.data.payload);
+              onError(err);
             } else {
-              throw event.data.payload;
+              throw err;
             }
           }
-        };
-        const boundWrappedCallback = wrappedCallback.bind(this);
-        this.handler = {
-          callback,
-          wrappedCallback: boundWrappedCallback,
-          onError
-        };
-        window.addEventListener('message', boundWrappedCallback, true);
-        window.postMessage(
-          {
-            type: 'react-state-event-initrequest',
-            name: this.name,
-            timing: Date.now(),
-            init: this.current
-          },
-          window.origin
-        );
-        this.initTimer = setTimeout(() => {
-          this.initialize();
-        }, initTimeoutMiliseconds);
-      }
+        } else {
+          if (onError) {
+            onError(event.data.payload);
+          } else {
+            throw event.data.payload;
+          }
+        }
+      };
+      const boundWrappedCallback = wrappedCallback.bind(this);
+      this.handler = {
+        callback,
+        wrappedCallback: boundWrappedCallback,
+        onError
+      };
+      window.addEventListener('message', boundWrappedCallback, true);
+      window.postMessage(
+        {
+          type: 'react-state-event-initrequest',
+          name: this.name,
+          timing: Date.now(),
+          init: this.current
+        },
+        window.origin
+      );
+      this.initTimer = setTimeout(() => {
+        this.initialize();
+      }, initTimeoutMiliseconds);
     }
   }
 
@@ -129,7 +126,7 @@ export default class ExternalStateEvents {
       this.callbacks = this.callbacks.filter(
         (handler) => handler.callback !== callback
       );
-      if (this.callbacks.length === 0) {
+      if (this.callbacks.length === 0 && typeof window !== 'undefined') {
         const { wrappedCallback } = this.handler;
         window.removeEventListener('message', wrappedCallback, true);
         this.handler = null;
@@ -139,7 +136,7 @@ export default class ExternalStateEvents {
   }
 
   unsubscribeAll() {
-    if (this.handler) {
+    if (this.handler && typeof window !== 'undefined') {
       const { wrappedCallback } = this.handler;
       window.removeEventListener('message', wrappedCallback, true);
       this.callbacks = [];
