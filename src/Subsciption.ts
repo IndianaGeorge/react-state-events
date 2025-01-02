@@ -6,19 +6,15 @@ import * as PropTypes from 'prop-types';
 type subscriptionParameterType<T> = {
   stateEvents: IStateEvents<T>;
   children: Function;
-  onError: IErrorCallback;
+  onError?: IErrorCallback;
 }
 
-export default function Subscription<T>({ stateEvents, children, onError }: subscriptionParameterType<T>) {
+const Subscription = <T>({ stateEvents, children, onError }: subscriptionParameterType<T>) => {
   const [value, setValue] = useState(stateEvents.getCurrent());
   useEffect(() => {
     const callback = (data: T) => setValue(data);
-    if (onError) {
-      const errorHandler = (err: Error) => onError(err);
-      stateEvents.subscribe(callback, errorHandler);
-    } else {
-      stateEvents.subscribe(callback);
-    }
+    const errorHandler = onError ? (err: Error) => onError(err) : undefined;
+    stateEvents.subscribe(callback, errorHandler);
     return () => stateEvents.unsubscribe(callback);
   }, []);
   return typeof children === 'function' ? children(value) : null;
@@ -29,3 +25,5 @@ Subscription.propTypes = {
   children: PropTypes.func.isRequired,
   onError: PropTypes.func
 };
+
+export default Subscription;
