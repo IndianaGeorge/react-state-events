@@ -1,12 +1,14 @@
+import { describe, expect, it, vi } from 'vitest'
+
 import { renderHook } from '@testing-library/react';
-import '@testing-library/jest-dom/extend-expect';
-import { act } from 'react-dom/test-utils';
-import StateEvents from './StateEvents';
+// import '@testing-library/jest-dom/extend-expect';
+import act from 'react-dom/test-utils';
+import LocalStateEvents from './LocalStateEvents';
 import { useStateEvents } from './index';
 
 describe('useStateEvents', () => {
-  test('should return the initial value and update when stateEvents publishes', async () => {
-    const stateEvents = new StateEvents(0);
+  it('should return the initial value and update when stateEvents publishes', async () => {
+    const stateEvents = new LocalStateEvents(0);
     const { result } = renderHook(() => useStateEvents(stateEvents));
     expect(result.current[0]).toBe(0);
     act(() => {
@@ -15,9 +17,9 @@ describe('useStateEvents', () => {
     expect(result.current[0]).toBe(42);
   });
 
-  test('should handle errors when onError is provided', async () => {
-    const stateEvents = new StateEvents(0);
-    const errorSpy = jest.spyOn(console, 'error').mockImplementation();
+  it('should handle errors when onError is provided', async () => {
+    const stateEvents = new LocalStateEvents(0);
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation();
     renderHook(() => useStateEvents(stateEvents, console.error));
 
     act(() => {

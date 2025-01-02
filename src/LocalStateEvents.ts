@@ -4,7 +4,7 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
   current: T;
   streamId: string;
   allowDebug: boolean;
-  constructor(initial: T, debugName: boolean = false, allowDebug: boolean = false) {
+  constructor(initial: T, debugName?: string, allowDebug: boolean = false) {
     this.current = initial;
     const streamId = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(8))));
     const finalDebugName = debugName || `${streamId}`;

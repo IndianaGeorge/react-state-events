@@ -5,6 +5,8 @@
 [See a working demo](https://indianageorge.github.io/react-state-events/)
 
 [![NPM](https://img.shields.io/npm/v/react-state-events.svg)](https://www.npmjs.com/package/react-state-events)
+## NOTE
+Version 4.0.x was mistakenly published early. It's a big migration and some key changes that enable a lot of new features coming in the near future. Please use 3.x while the remaining issues are resolved. Apologies for the confusion. 4.1.x will be the first stable version.
 
 ## Breaking changes from version 3.x
 - Now shipping type definitions! No change unless you use it in Typescript.
@@ -28,7 +30,7 @@ npm install --save react-state-events
 
 ## What is this?
 This is a collection of tools to help you lift React state.
-- StateEvents: a class to publish and subscribe to.
+- LocalStateEvents: a class to publish and subscribe to.
 - ExternalStateEvents: same as above, but communicates through a name without having the original instance (useful with micro-frontends).
 - useStateEvents: a React hook to publish data and update your component when data arrives.
 - Subscription: a component that will update when data arrives.
@@ -42,7 +44,7 @@ This is a collection of tools to help you lift React state.
 - It does the above using very little code.
 - There is a companion extension to debug your event streams in development builds.
 
-## Using the StateEvents class
+## Using the LocalStateEvents class
 **Advantages**
 - Can be subscribed/published to
 - Can handle exceptions in the callback
@@ -50,9 +52,9 @@ This is a collection of tools to help you lift React state.
 - Multiple instances do not clash
 - Optional name for debugging, shows on React DevTools in suscriber hooks as StateEvents
 ```js
-import { StateEvents } from 'react-state-events'
+import { LocalStateEvents } from 'react-state-events'
 
-const events = new StateEvents(0);
+const events = new LocalStateEvents(0);
 events.subscribe((data)=>console.log(data));
 events.publish(1);
 events.publish(2);
@@ -67,7 +69,7 @@ events.unsubscribeAll();
 ```js
 import { ExternalStateEvents } from 'react-state-events'
 
-const events = new StateEvents(0, 'myStreamName');
+const events = new ExternalStateEvents(0, 'myStreamName');
 events.subscribe((data)=>console.log(data));
 events.publish(1);
 events.publish(2);
@@ -129,19 +131,19 @@ In both cases, errorCallback should be a function that takes a single argument f
 ## How do I lift state using react-state-events?
 
 Using a combination of react-state-events and the Context API:
-* Create a controller class (not a React component!) that keeps state and a `StateEvents` instance. Take the debugName in the constructor.
-* Implement a method in the controller that returns the `StateEvents` instance, so components can subscribe to it. Have more instances if they need to update independently.
+* Create a controller class (not a React component!) that keeps state and a `LocalStateEvents` instance. Take the debugName in the constructor.
+* Implement a method in the controller that returns the `LocalStateEvents` instance, so components can subscribe to it. Have more instances if they need to update independently.
 * Implement methods in the controller that change the state and publish it
 * Create a context object to hold the instance (or instances!) of the controller. Pass the debugName for this instance to the constructor.
 * In your components, get the controller instance from the context and use the hook or class to handle the subscription and notify the component of updates.
 
 **CounterController.js**
 ```js
-import { StateEvents } from 'react-state-events'
+import { LocalStateEvents } from 'react-state-events'
 
 export default class CounterController {
     constructor(debugName) {
-        this.counterEvents = new StateEvents(0,debugName);
+        this.counterEvents = new LocalStateEvents(0,debugName);
         this.counter = 0;
     }
 
@@ -192,13 +194,13 @@ When clicking the button
 Try adding more instances of the counter in the context, or even in a new context!
 
 ## How do I share state across micro-frontends using react-state-events?
-You don't need the context API, just use `ExternalStateEvents` in place of `StateEvents` and remember the event stream name parameter. External event streams are global, so it identifies the stream across ALL your application, ACROSS micro-frontends.
+You don't need the context API, just use `ExternalStateEvents` in place of `LocalStateEvents` and remember the event stream name parameter. External event streams are global, so it identifies the stream across ALL your application, ACROSS micro-frontends.
 * Create one `ExternalStateEvents` in micro-frontend `A`, use the `useStateEvents` hook with it.
 * Create one `ExternalStateEvents` in micro-frontend `B` with the same name you used in `A` and use the `useStateEvents` with it.
 * Make sure the ExternalStateEvents object is not being destroyed with every render! This causes multiple problems. Context API works here (as shown above), but passing an instance as a prop to the controlled component is also enough.
 * If you change the state in `A`, `B` will update with the value (and vice-versa).
 * `A` and `B` can be host/application or siblings, they will still communicate.
-* This is achieved using asynchronous messages, so performance is lower than `StateEvents`.
+* This is achieved using asynchronous messages, so performance is lower than `LocalStateEvents`.
 
 ## How do I share state with micro-frontends written in a different framework?
 You can communicate with other frameworks by sending/handling messages in the proper format:
@@ -219,7 +221,7 @@ Where:
 ## How do I use the react-state-event devtool extension with my code?
 The extension will be able to collect data from an application using the library when any of the following conditions is met:
 * The constructor was passed a third parameter of true
-    * const es = new StateEvents(0, 'myStreamName', true);
+    * const es = new LocalStateEvents(0, 'myStreamName', true);
     * const es = new ExternalStateEvents(0, 'myStreamName', true);
 * It's a development build (`process.env.NODE_ENV` exists and it's not `production`)
 * Environment variable `process.env.REACT_STATE_EVENT_DEVTOOL` exists as `true`
