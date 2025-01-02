@@ -138,7 +138,7 @@ export ExternalCounterEventStreamType = ExternalStateEvents<number>;
 
 Then use the declared type for consistency across your application
 ```tsx
-const counterStream : LocalCounterEventStreamType = new LocalStateEvents(0, 'counter', true);
+const counterStream : LocalCounterEventStreamType = new LocalStateEvents(0);
 ```
 
 ## How do I lift state using react-state-events?
