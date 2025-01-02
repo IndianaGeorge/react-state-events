@@ -3,7 +3,7 @@ import type { IStateEvents, IErrorCallback } from './types/StateEvents';
 import { useState, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
-export default function useStateEvents<T>(stateEvents: IStateEvents<T>, onError: IErrorCallback) {
+export default function useStateEvents<T>(stateEvents: IStateEvents<T>, onError: IErrorCallback | null = null) {
   const [value, setValue] = useState(stateEvents.getCurrent());
   useEffect(() => {
     const callback = (data: T) => setValue(data);

@@ -128,6 +128,19 @@ const [val,setVal] = useStateEvents(myEvents, errorCallback);
 ```
 In both cases, errorCallback should be a function that takes a single argument for the error.
 
+## Typescript
+
+Template types are to be used with your own event types.
+```tsx
+export LocalCounterEventStreamType = LocalStateEvents<number>;
+export ExternalCounterEventStreamType = ExternalStateEvents<number>;
+```
+
+Then use the declared type for consistency across your application
+```tsx
+const counterStream : LocalCounterEventStreamType = new LocalStateEvents(0, 'counter', true);
+```
+
 ## How do I lift state using react-state-events?
 
 Using a combination of react-state-events and the Context API:
