@@ -15,7 +15,7 @@ export default () => {
       <div className={styles.app}>
 
         <div className={styles.context}>
-          <h1>StateEvents</h1>
+          <h1>LocalStateEvents</h1>
           <div>
             <div className={styles.type}>
               <h2>useStateEvents hook</h2>

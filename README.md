@@ -50,7 +50,7 @@ This is a collection of tools to help you lift React state.
 - Can handle exceptions in the callback
 - High performance
 - Multiple instances do not clash
-- Optional name for debugging, shows on React DevTools in suscriber hooks as StateEvents
+- Optional name for debugging, shows on React DevTools in suscriber hooks as LocalStateEvents
 ```js
 import { LocalStateEvents } from 'react-state-events'
 
