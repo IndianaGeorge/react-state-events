@@ -1,10 +1,10 @@
-import '@testing-library/jest-dom/extend-expect';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { LocalStateEvents } from './index';
 
 describe('LocalStateEvents', () => {
-  test('should call the handler when publish is called', () => {
+  it('should call the handler when publish is called', () => {
     const stateEvents = new LocalStateEvents(0);
-    const handler = jest.fn();
+    const handler = vi.fn();
     stateEvents.subscribe(handler);
 
     stateEvents.publish(42);
@@ -12,9 +12,9 @@ describe('LocalStateEvents', () => {
     expect(handler).toHaveBeenCalledWith(42);
   });
 
-  test('should call the error handler when error is called', () => {
+  it('should call the error handler when error is called', () => {
     const stateEvents = new LocalStateEvents(0);
-    const errorHandler = jest.fn();
+    const errorHandler = vi.fn();
     stateEvents.subscribe(undefined, errorHandler);
 
     stateEvents.error('An error occurred');
@@ -22,7 +22,7 @@ describe('LocalStateEvents', () => {
     expect(errorHandler).toHaveBeenCalledWith('An error occurred');
   });
 
-  test('should throw when error is called with no error handler', () => {
+  it('should throw when error is called with no error handler', () => {
     const stateEvents = new LocalStateEvents(0);
     stateEvents.subscribe(undefined);
 
@@ -32,10 +32,10 @@ describe('LocalStateEvents', () => {
     expect(t).toThrow('An error occurred');
   });
 
-  test('should unsubscribe a callback', () => {
+  it('should unsubscribe a callback', () => {
     const stateEvents = new LocalStateEvents(0);
-    const handler1 = jest.fn();
-    const handler2 = jest.fn();
+    const handler1 = vi.fn();
+    const handler2 = vi.fn();
     stateEvents.subscribe(handler1);
     stateEvents.subscribe(handler2);
 
@@ -46,10 +46,10 @@ describe('LocalStateEvents', () => {
     expect(handler2).toHaveBeenCalledWith(42);
   });
 
-  test('should unsubscribe all callbacks', () => {
+  it('should unsubscribe all callbacks', () => {
     const stateEvents = new LocalStateEvents(0);
-    const handler1 = jest.fn();
-    const handler2 = jest.fn();
+    const handler1 = vi.fn();
+    const handler2 = vi.fn();
     stateEvents.subscribe(handler1);
     stateEvents.subscribe(handler2);
 

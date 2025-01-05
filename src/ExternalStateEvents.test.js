@@ -1,24 +1,24 @@
-import '@testing-library/jest-dom/extend-expect';
-import { act } from 'react-dom/test-utils';
+import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import { act } from '@testing-library/react';
 import { ExternalStateEvents } from './index';
 
-jest.useFakeTimers();
+vi.useFakeTimers();
 
 describe('ExternalStateEvents', () => {
   beforeEach(() => {
     window.origin = 'test';
-    window.postMessage = jest.fn();
-    window.addEventListener = jest.fn();
-    window.removeEventListener = jest.fn();
+    window.postMessage = vi.fn();
+    window.addEventListener = vi.fn();
+    window.removeEventListener = vi.fn();
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
-  test('should register the handler when subscribe is called', async () => {
+  it('should register the handler when subscribe is called', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
-    const handler = jest.fn();
+    const handler = vi.fn();
     stateEvents.subscribe(handler);
 
     const mockMessageEvent = {
@@ -35,18 +35,18 @@ describe('ExternalStateEvents', () => {
     act(() => {
       window.addEventListener.mock.calls[0][1](mockMessageEvent);
     });
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     expect(handler).toHaveBeenCalledWith(42);
   });
 
-  test('should send a message when publish is called', async () => {
+  it('should send a message when publish is called', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
 
     act(() => {
       stateEvents.publish(42);
     });
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     expect(window.postMessage).toHaveBeenCalledWith(
       {
@@ -59,9 +59,9 @@ describe('ExternalStateEvents', () => {
     );
   });
 
-  test('should call the error handler when message says no success', async () => {
+  it('should call the error handler when message says no success', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
-    const errorHandler = jest.fn();
+    const errorHandler = vi.fn();
     stateEvents.subscribe(undefined, errorHandler);
 
     const mockMessageEvent = {
@@ -78,18 +78,19 @@ describe('ExternalStateEvents', () => {
     act(() => {
       window.addEventListener.mock.calls[0][1](mockMessageEvent);
     });
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     expect(errorHandler).toHaveBeenCalledWith('An error occurred');
   });
 
-  test('should call error handler when message handler throws', async () => {
+  it('should call error handler when message handler throws', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
-    const handler = jest.fn().mockImplementation(() => {
+    const error = new Error('An error occurred');
+    const handler = vi.fn().mockImplementation(() => {
       // eslint-disable-next-line no-throw-literal
-      throw 'An error occurred';
+      throw error;
     });
-    const errorHandler = jest.fn();
+    const errorHandler = vi.fn();
     stateEvents.subscribe(handler, errorHandler);
 
     const mockMessageEvent = {
@@ -106,14 +107,14 @@ describe('ExternalStateEvents', () => {
     act(() => {
       window.addEventListener.mock.calls[0][1](mockMessageEvent);
     });
-    jest.runAllTimers();
+    vi.runAllTimers();
 
-    expect(errorHandler).toHaveBeenCalledWith('An error occurred');
+    expect(errorHandler).toHaveBeenCalledWith(error);
   });
 
-  test('should throw error when message handler throws and no error handler', async () => {
+  it('should throw error when message handler throws and no error handler', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
-    const handler = jest.fn().mockImplementation(() => {
+    const handler = vi.fn().mockImplementation(() => {
       // eslint-disable-next-line no-throw-literal
       throw 'An error occurred';
     });
@@ -137,7 +138,7 @@ describe('ExternalStateEvents', () => {
     expect(t).toThrow('An error occurred');
   });
 
-  test('should throw when message says no success and no error handler', async () => {
+  it('should throw when message says no success and no error handler', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
     stateEvents.subscribe(undefined);
 
@@ -156,20 +157,20 @@ describe('ExternalStateEvents', () => {
     const t = () => {
       wrappedCallback(mockMessageEvent);
     };
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     expect(t).toThrow('An error occurred');
   });
 
-  test('should send a message with error when error is called', async () => {
+  it('should send a message with error when error is called', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
-    const errorHandler = jest.fn();
+    const errorHandler = vi.fn();
     stateEvents.subscribe(undefined, errorHandler);
 
     act(() => {
       stateEvents.error('An error ocurred');
     });
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     expect(window.postMessage).toHaveBeenCalledWith(
       {
@@ -182,10 +183,10 @@ describe('ExternalStateEvents', () => {
     );
   });
 
-  test('should unsubscribe a callback', async () => {
+  it('should unsubscribe a callback', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
-    const handler1 = jest.fn();
-    const handler2 = jest.fn();
+    const handler1 = vi.fn();
+    const handler2 = vi.fn();
     stateEvents.subscribe(handler1);
     stateEvents.subscribe(handler2);
 
@@ -206,15 +207,15 @@ describe('ExternalStateEvents', () => {
     act(() => {
       window.addEventListener.mock.calls[0][1](mockMessageEvent);
     });
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     expect(handler1).toHaveBeenCalledWith(42);
   });
 
-  test('should unsubscribe all callbacks', async () => {
+  it('should unsubscribe all callbacks', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
-    const handler1 = jest.fn();
-    const handler2 = jest.fn();
+    const handler1 = vi.fn();
+    const handler2 = vi.fn();
     stateEvents.subscribe(handler1);
     stateEvents.subscribe(handler2);
     stateEvents.unsubscribeAll();
@@ -226,9 +227,9 @@ describe('ExternalStateEvents', () => {
     expect(handler2).not.toHaveBeenCalledWith(42);
   });
 
-  test('should request and use initialization value', async () => {
+  it('should request and use initialization value', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
-    const handler = jest.fn();
+    const handler = vi.fn();
     stateEvents.subscribe(handler);
 
     expect(window.postMessage).toHaveBeenCalledWith(
@@ -254,7 +255,7 @@ describe('ExternalStateEvents', () => {
     act(() => {
       window.addEventListener.mock.calls[0][1](mockMessageEvent);
     });
-    jest.runAllTimers();
+    vi.runAllTimers();
 
     const isInitialized = stateEvents.isInitialized();
     const current = stateEvents.getCurrent();
