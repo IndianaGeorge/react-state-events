@@ -1,4 +1,5 @@
 export interface IErrorCallback {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (err: any): void;
 }
 
@@ -12,5 +13,6 @@ export interface IStateEvents<T> {
   unsubscribeAll(): void;
   getCurrent(): T;
   publish(data: T): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error(err: any): void;
 }

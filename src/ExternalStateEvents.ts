@@ -11,7 +11,6 @@ export default class ExternalStateEvents<T> implements IStateEvents<T> {
   callbacks: {callback: ICallback<T>, onError: IErrorCallback | null}[];
   handler: {callback: ICallback<T>, wrappedCallback: IMessageHandler, onError: IErrorCallback | null} | null;
   allowDebug: boolean;
-  timing: any;
   constructor(initial: T, name: string, allowDebug = false) {
     this.current = initial;
     this.name = name;
@@ -58,7 +57,7 @@ export default class ExternalStateEvents<T> implements IStateEvents<T> {
                     name: this.name,
                     success: true,
                     payload: this.current,
-                    timing: this.timing
+                    timing: this.timestamp
                   },
                   window.origin
                 );
@@ -189,6 +188,7 @@ export default class ExternalStateEvents<T> implements IStateEvents<T> {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error(err: any) {
     if (typeof window !== 'undefined') {
       window.postMessage(

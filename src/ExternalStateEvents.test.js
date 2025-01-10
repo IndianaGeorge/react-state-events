@@ -87,7 +87,6 @@ describe('ExternalStateEvents', () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
     const error = new Error('An error occurred');
     const handler = vi.fn().mockImplementation(() => {
-      // eslint-disable-next-line no-throw-literal
       throw error;
     });
     const errorHandler = vi.fn();
@@ -115,7 +114,6 @@ describe('ExternalStateEvents', () => {
   it('should throw error when message handler throws and no error handler', async () => {
     const stateEvents = new ExternalStateEvents(0, 'example');
     const handler = vi.fn().mockImplementation(() => {
-      // eslint-disable-next-line no-throw-literal
       throw 'An error occurred';
     });
     stateEvents.subscribe(handler);

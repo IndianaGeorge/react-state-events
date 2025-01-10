@@ -78,6 +78,7 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
     this.callHandlers(data);
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error(err: any): void {
     if (this.allowDebug) {
       window.postMessage(
