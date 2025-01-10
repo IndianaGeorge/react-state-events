@@ -3,11 +3,11 @@ import type { IStateEvents, IErrorCallback } from './types/StateEvents';
 import { useState, useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
-const useStateEvents = <T>(stateEvents: IStateEvents<T>, onError: IErrorCallback | null = null) => {
+const useStateEvents = <T>(stateEvents: IStateEvents<T>, onError: IErrorCallback | null = null): [T, (state: T) => void] => {
   const [value, setValue] = useState(stateEvents.getCurrent());
   useEffect(() => {
     const callback = (data: T) => setValue(data);
-    const errorHandler = onError ? (err: Error) => onError(err) : undefined;
+    const errorHandler = onError ? (err: any) => onError(err) : undefined;
     stateEvents.subscribe(callback, errorHandler);
     return () => stateEvents.unsubscribe(callback);
   }, []);

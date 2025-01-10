@@ -1,5 +1,5 @@
 export interface IErrorCallback {
-  (err: Error): void;
+  (err: any): void;
 }
 
 export interface ICallback<T> {
@@ -12,5 +12,5 @@ export interface IStateEvents<T> {
   unsubscribeAll(): void;
   getCurrent(): T;
   publish(data: T): void;
-  error(err: Error): void;
+  error(err: any): void;
 }

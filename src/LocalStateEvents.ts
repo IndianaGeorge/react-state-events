@@ -78,7 +78,7 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
     this.callHandlers(data);
   }
 
-  error(err: Error): void {
+  error(err: any): void {
     if (this.allowDebug) {
       window.postMessage(
         {

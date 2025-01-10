@@ -189,7 +189,7 @@ export default class ExternalStateEvents<T> implements IStateEvents<T> {
     }
   }
 
-  error(err: Error) {
+  error(err: any) {
     if (typeof window !== 'undefined') {
       window.postMessage(
         {
