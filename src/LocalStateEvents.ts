@@ -1,5 +1,9 @@
 import type { IStateEvents, ICallback, IErrorCallback } from "./types/StateEvents";
 
+import { debugAnnounce, debugListen, debugSend } from "./debugHelper";
+
+const streamType = 'LocalStateEvents';
+
 export default class LocalStateEvents<T> implements IStateEvents<T> {
   current: T;
   streamId: string;
@@ -11,32 +15,11 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
     this.streamId = streamId;
     this.allowDebug = allowDebug && typeof window !== 'undefined';
     if (this.allowDebug) {
-      setTimeout(function () {
-        window.postMessage(
-          {
-            type: 'react-state-event-devTool-streamId',
-            payload: {
-              debugName: finalDebugName,
-              streamType: 'LocalStateEvents',
-            },
-            id: streamId,
-            init: initial
-          },
-          '*'
-        );
-      }, 1000);
-      window.addEventListener('message', (event) => {
-        if (
-          event.origin !== window.origin ||
-          event.source !== window ||
-          event.data.type !== 'react-state-event-devTool-set' ||
-          event.data.id !== this.streamId
-        ) {
-          return;
-        }
-        this.current = event.data.payload;
-        this.callHandlers(event.data.payload);
-      });
+      debugAnnounce<T>(finalDebugName, streamType, streamId, initial);
+      debugListen<T>(streamId, streamType, (value: T) => {
+        this.current = value;
+        this.callHandlers(value);
+      })
     }
   }
 
@@ -62,37 +45,14 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
   publish(data: T): void {
     this.current = data;
     if (this.allowDebug) {
-      window.postMessage(
-        {
-          type: 'react-state-event-devTool-notify',
-          payload: {
-            streamType: 'LocalStateEvents',
-            streamId: this.streamId,
-            success: true,
-            value: data
-          }
-        },
-        '*'
-      );
+      debugSend(this.streamId, streamType, true, data);
     }
     this.callHandlers(data);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error(err: any): void {
     if (this.allowDebug) {
-      window.postMessage(
-        {
-          type: 'react-state-event-devTool-notify',
-          payload: {
-            streamType: 'LocalStateEvents',
-            streamId: this.streamId,
-            success: false,
-            value: err
-          }
-        },
-        '*'
-      );
+      debugSend(this.streamId, streamType, false, err);
     }
     this.handlers.forEach((handler) => {
       if (handler.onError) {
