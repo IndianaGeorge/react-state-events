@@ -3,10 +3,11 @@ import React from 'react'
 import {useStateEvents} from 'react-state-events'
 import styles from './common.module.css'
 
+const onError = (err)=>{
+  console.log('FromHook handled error:',err);
+};
+
 export default ({stateEvents})=>{
-    const onError = (err)=>{
-        console.log('FromHook handled error:',err);
-    };
     const [val,setVal] = useStateEvents(stateEvents,onError);
     const onClick = ()=>setVal(val+1);
     return (
