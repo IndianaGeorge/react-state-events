@@ -17,9 +17,9 @@ npm install --save react-state-events
 ## What is this?
 This is a collection of tools to help you lift React state.
 - LocalStateEvents: a class to publish and subscribe to.
-- ExternalStateEvents: same as above, but communicates through a name without having the original instance (useful with micro-frontends).
+- MessageStateEvents: same as above, but communicates through a name without having the original instance (useful for micro-frontends).
 - useStateEvents: a React hook to publish data and update your component when data arrives.
-- Subscription: a component that will update when data arrives.
+- Subscription: a React component that will update when data arrives.
 
 ## How is it useful?
 - It allows you to decouple data handling from React components, in a pattern similar to MVC.
@@ -33,6 +33,7 @@ This is a collection of tools to help you lift React state.
 ## Using the LocalStateEvents class
 **Advantages**
 - Can be subscribed/published to
+- Can get the current value through `getCurrent`
 - Can handle exceptions in the callback
 - High performance
 - Multiple instances do not clash
@@ -47,20 +48,70 @@ events.publish(2);
 events.unsubscribeAll();
 ```
 
-## Using the ExternalStateEvents class
+### Caveats
+* In development mode, React renders everything twice. This means your LocalStateEvent will probably get instanced twice and announce itself twice to the debug extension, so you will see two identical streams and only one will work. This will not happen in production builds.
+* If you create more streams with the same debug name, they will be separate in the debug extension, but will show the same name.
+
+## Using the MessageStateEvents class
 **Advantages**
 - Can be subscribed/published to
+- Can handle exceptions in the callback
+- Can get the current value through `getCurrent`
 - __Can cross micro-frontend boundaries__
-- Instances with the same name share streams
+- Can subscribe/publish by a name, without knowing about other instances
+- May pass an Array of Targets (see below) to share state with other windows
 ```js
-import { ExternalStateEvents } from 'react-state-events'
+import { MessageStateEvents } from 'react-state-events'
 
-const events = new ExternalStateEvents(0, 'myStreamName');
+const events = new MessageStateEvents(0, 'myStreamName');
 events.subscribe((data)=>console.log(data));
 events.publish(1);
 events.publish(2);
 events.unsubscribeAll();
 ```
+
+### Communicating with another window
+
+`MessageStateEvents` communicates with other windows through relaying events.
+
+We describe windows to communicate with as Targets, with the following TypeScript type:
+
+```ts
+type Target = {
+  source: Window,
+  origin: string,
+}
+```
+
+Communication across windows has **many** caveats, because of security measures implemented by browsers:
+* origin must NOT be '*', use window.origin to get a window's origin.
+* origin must be the same on all connected windows
+* you'll need a reference to the target window, which you'll only have with popups
+
+We can see this in action in the provided example project. Here's the relevant details:
+
+Host opening a popup and connecting to it, at any time:
+```js
+const popup = window.open(window.URL, '_blank', 'popup');
+hostMessageEventStreamInstance.addTarget(popup, window.origin);
+```
+**IMPORTANT**
+* make sure to connect streams only **ONCE** to each window!
+* Since `MessageStateEvents` connect by name, if you have multiple instances connecting from different parts of your application, only one of them should have the target (and thus, relaying events).
+* The instance that has the target does the communication. If this instance is unsubscribed, it will no longer relay messages to the other window.
+* For this reason, you might want to have a dedicated instance whose sole role is to relay to known popups.
+
+Popup connecting to the host, so the popup relays it's events back to the host:
+
+```js
+const popupMessageEventStreamInstance =
+  new MessageStateEvents(0,"counter", window.opener ? {targets: [{source: window.opener, origin: window.opener.origin}]}: {}, true);
+```
+
+### Daisy-chaining popups
+
+* YES! you may daisy-chain popups so they all communicate
+* If one of the windows in the daisy chain is closed, it won't relay communications between parent and children anymore, so states will diverge
 
 ## Using the useStateEvents hook
 **Advantages**
@@ -119,7 +170,7 @@ In both cases, errorCallback should be a function that takes a single argument f
 Template types are to be used with your own event types.
 ```tsx
 export LocalCounterEventStreamType = LocalStateEvents<number>;
-export ExternalCounterEventStreamType = ExternalStateEvents<number>;
+export MessageCounterEventStreamType = MessageStateEvents<number>;
 ```
 
 Then use the declared type for consistency across your application
@@ -193,13 +244,14 @@ When clicking the button
 Try adding more instances of the counter in the context, or even in a new context!
 
 ## How do I share state across micro-frontends using react-state-events?
-You don't need the context API, just use `ExternalStateEvents` in place of `LocalStateEvents` and remember the event stream name parameter. External event streams are global, so it identifies the stream across ALL your application, ACROSS micro-frontends.
-* Create one `ExternalStateEvents` in micro-frontend `A`, use the `useStateEvents` hook with it.
-* Create one `ExternalStateEvents` in micro-frontend `B` with the same name you used in `A` and use the `useStateEvents` with it.
-* Make sure the ExternalStateEvents object is not being destroyed with every render! This causes multiple problems. Context API works here (as shown above), but passing an instance as a prop to the controlled component is also enough.
+You don't need the context API, just use `MessageStateEvents` in place of `LocalStateEvents` and remember the event stream name parameter. External event streams are global, so it identifies the stream across ALL your application, ACROSS micro-frontends.
+* Create one `MessageStateEvents` in micro-frontend `A`, use the `useStateEvents` hook with it.
+* Create one `MessageStateEvents` in micro-frontend `B` with the same name you used in `A` and use the `useStateEvents` with it.
+* Make sure the `MessageStateEvents` object is not being destroyed with every render! This causes multiple problems. Context API works here (as shown above), but passing an instance as a prop to the controlled component is also enough. You may also use the useMemo hook.
 * If you change the state in `A`, `B` will update with the value (and vice-versa).
 * `A` and `B` can be host/application or siblings, they will still communicate.
 * This is achieved using asynchronous messages, so performance is lower than `LocalStateEvents`.
+* You can relay events to popups and even daisy-chain them to share state across many windows.
 
 ## How do I share state with micro-frontends written in a different framework?
 You can communicate with other frameworks by sending/handling messages in the proper format:
@@ -219,17 +271,17 @@ Where:
 
 ## How do I use the react-state-event devtool extension with my code?
 The extension will be able to collect data from an application using the library when any of the following conditions is met:
-* The constructor was passed a third parameter of true
-    * const es = new LocalStateEvents(0, 'myStreamName', true);
-    * const es = new ExternalStateEvents(0, 'myStreamName', true);
+* The constructor was passed the allowDebug parameter as true
+    * `const es = new LocalStateEvents(0, 'myStreamName', true);`
+    * `const es = new MessageStateEvents(0, 'myStreamName', {}, true);`
 * It's a development build (`process.env.NODE_ENV` exists and it's not `production`)
 * Environment variable `process.env.REACT_STATE_EVENT_DEVTOOL` exists as `true`
 * Environment variable `process.env.REACT_APP_REACT_STATE_EVENT_DEVTOOL` exists as `true`
 
-## Is lifting state using `ExternalStateEvents` safer than using `LocalStorage`?
+## Is lifting state using `MessageStateEvents` safer than using `localStorage`?
 * Messages are scoped to the window that emitted them.
-* Any Javascript running in the same window will see the passing messages, so it's vulnerable to XSS just like LocalStorage.
-* Messages are __NOT__ stored (as in LocalStorage), so once the event is handled, an XSS attack cannot retrieve it anymore.
+* Any Javascript running in the same window will see the passing messages, so it's vulnerable to XSS just like `localStorage`.
+* Messages are __NOT__ stored (as in `localStorage`), so once the event is handled, an XSS attack cannot retrieve it anymore.
 * Messages can be sent to and received from the window through the javascript console
 
 ## License

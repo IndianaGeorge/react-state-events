@@ -3,6 +3,9 @@ import type { IMessageHandler } from './types/EventHandlers';
 
 const initTimeoutMiliseconds = 500;
 
+/**
+ * @deprecated since version 4.1.0, use MessageStateEvents, parameters are different.
+ */
 export default class ExternalStateEvents<T> implements IStateEvents<T> {
   current: T;
   name: string;
