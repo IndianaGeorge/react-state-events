@@ -11,7 +11,7 @@ export default () => {
   const extCounterEventsA = new MessageStateEvents(0,"counter", window.opener ? {targets: [{source: window.opener, origin: window.opener.origin}]}: {}, true);
   const extCounterEventsB = new MessageStateEvents(0,"counter", true);
   function openPopup() {
-    const popup = window.open(window.URL, '_blank', 'popup');
+    const popup = window.open(window.location.href, '_blank', 'popup');
     extCounterEventsA.addTarget(popup, window.origin);
   }
 
