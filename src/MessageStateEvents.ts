@@ -28,7 +28,6 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
   allowDebug: boolean;
   constructor(initial: T, name: string, options: IMessageStateEventsOptions | boolean = {}, allowDebug = false) {
     this.instanceId = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(8))));
-    console.warn(`Creating instance: ${this.instanceId}`);
     this.current = initial;
     this.name = name;
     this.initTimer = null;
@@ -63,16 +62,13 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
           case 'message-state-events-initresponse':
             if (event.data.success) {
               if (this.isInitialized() || this.instanceId === event.data.instanceId) {
-                console.log(`${this.instanceId} discarding initresponse from ${event.data?.instanceId}:`, event.data);
                 return;
               }
               this.current = event.data.payload;
               this.initialize();
               if (msgSourceTarget) { // if from a target, repost to all targets but the source or current
                 const allTargets: Target[] = this.targets.filter((target) => target.source !== msgSourceTarget.source);
-                if (this.allowDebug) console.log(`${this.instanceId} I'm not initialized, so reposting initresponse to this many targets:`, allTargets.length);
                 allTargets.forEach((target) => {
-                  if (this.allowDebug) console.log(`${this.instanceId} reposting initresponse for target:`, target);
                   target.source.postMessage(
                     {
                       type: 'message-state-events-initresponse',
@@ -139,7 +135,6 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
                 if (this.timestamp !== null && this.timestamp < event.data.timing) {
                   // we initialized before request, so respond (to originating window)
                   const newTarget: Target = msgSourceTarget ? msgSourceTarget : {source: window, origin: window.origin};
-                  if (this.allowDebug) console.log(`${this.instanceId} I'm initialized, so responding to initrequest to this target:`, newTarget);
                   newTarget.source.postMessage(
                     {
                       type: 'message-state-events-initresponse',
@@ -154,9 +149,7 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
                 }
               } else { // if not initialized and not from self, repost to all targets but the source or current
                   const allTargets: Target[] = this.targets.filter((target) =>  target.source !== msgSourceTarget?.source);
-                  if (this.allowDebug) console.log(`${this.instanceId} Reposting initrequest to this many targets:`, allTargets.length);
                   allTargets.forEach((target) => {
-                    if (this.allowDebug) console.log(`${this.instanceId} reposting to target:`, target);
                     target.source.postMessage(
                       {
                         type: 'message-state-events-initrequest',
@@ -169,8 +162,6 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
                     );
                   });
               }
-            } else {
-              console.log(`${this.instanceId} discarding own initreqest`);
             }
             return;
           default:
@@ -210,7 +201,6 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
       window.addEventListener('message', boundWrappedCallback, true);
       const allTargets: Target[] = [...this.targets, {source: window, origin: window.origin}];
       allTargets.forEach((target) => {
-        if (this.allowDebug) console.log(`${this.instanceId} posting own initrequest to target:`, target);
         target.source.postMessage(
           {
             type: 'message-state-events-initrequest',
@@ -241,7 +231,6 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
       clearTimeout(this.initTimer);
       this.initTimer = null;
       this.timestamp = Date.now();
-      if (this.allowDebug) console.log(`${this.instanceId} initialized!`);
     }
   }
 
