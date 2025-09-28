@@ -35,7 +35,7 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
     this.handlers = this.handlers.filter(
       (handler) => handler.callback !== callback
     );
-    if (this.allowDebug && this.debugListener) {
+    if (this.handlers.length > 0 && this.debugListener) {
       debugRemoveListener(this.debugListener);
     }
   }
