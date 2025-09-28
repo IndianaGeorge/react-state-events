@@ -19,15 +19,17 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
     this.debugListener = null;
     if (this.allowDebug) {
       debugAnnounce<T>(finalDebugName, streamType, streamId, initial);
-      this.debugListener = debugAddListener<T>(streamId, streamType, (value: T) => {
-        this.current = value;
-        this.callHandlers(value);
-      })
     }
   }
 
   handlers: { callback: ICallback<T>, onError: IErrorCallback | null}[] = [];
   subscribe(callback: ICallback<T>, onError: IErrorCallback | null = null): void {
+    if (this.allowDebug && this.handlers.length === 0) {
+      this.debugListener = debugAddListener<T>(this.streamId, streamType, (value: T) => {
+        this.current = value;
+        this.callHandlers(value);
+      });
+    }
     this.handlers.push({ callback, onError });
   }
 
