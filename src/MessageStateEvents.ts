@@ -56,7 +56,6 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
           ((event.source !== window) && !msgSourceTarget) || // it's not from current window and not in targets
           (msgSourceTarget && (msgSourceTarget.origin !== '*') && (event.origin !== msgSourceTarget.origin)) // it's from targets but with a different origin
         ) {
-          console.error('checkpoint');
           return;
         }
         switch (event.data.type) {
