@@ -5,7 +5,6 @@ import styles from './common.module.css'
 
 const InnerRelay = ({stateEvents})=>{
   const [val] = useStateEvents(stateEvents);
-  console.log(`Relay got ${val}`)
   return (
     <>{val}</>
   );
