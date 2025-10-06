@@ -4,15 +4,17 @@ import { LocalStateEvents, MessageStateEvents } from 'react-state-events';
 import FromHook from './UI/FromHook';
 import FromComponent from './UI/FromComponent';
 import MountOnClick from './UI/MountOnClick';
+import Relay from './UI/Relay';
 import styles from './App.module.css';
 
 export default () => {
   const counterEvents = new LocalStateEvents(0,"single counter", true);
-  const extCounterEventsA = new MessageStateEvents(0,"counter", window.opener ? {targets: [{source: window.opener, origin: window.opener.origin}]}: {}, true);
+  const relayEvents = new MessageStateEvents(0,"counter", window.opener ? {targets: [{source: window.opener, origin: window.opener.origin}]}: {}, true);
+  const extCounterEventsA = new MessageStateEvents(0,"counter", true);
   const extCounterEventsB = new MessageStateEvents(0,"counter", true);
   function openPopup() {
     const popup = window.open(window.location.href, '_blank', 'popup');
-    extCounterEventsA.addTarget(popup, window.origin);
+    relayEvents.addTarget(popup, window.origin);
   }
 
   return (
@@ -40,6 +42,7 @@ export default () => {
 
         <div className={styles.context}>
           <h1>MessageStateEvents</h1>
+          <Relay stateEvents={relayEvents}/>
           <div>
             <div className={styles.type}>
               <h2>useStateEvents hook</h2>
