@@ -32,8 +32,8 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
     this.name = name;
     this.initTimer = null;
     this.timestamp = null;
-    this.callbacks = [];
-    this.handler = null;
+    this.callbacks = []; // the callbacks user send
+    this.handler = null; // the actual handler we registered, wrapping the callback
     if (options === true || options === false) {
       this.allowDebug = options && typeof window !== 'undefined';
       this.targets = [];
@@ -56,6 +56,7 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
           ((event.source !== window) && !msgSourceTarget) || // it's not from current window and not in targets
           (msgSourceTarget && (msgSourceTarget.origin !== '*') && (event.origin !== msgSourceTarget.origin)) // it's from targets but with a different origin
         ) {
+          console.error('checkpoint');
           return;
         }
         switch (event.data.type) {
@@ -87,7 +88,7 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
           case 'message-state-events-event':
             if (this.instanceId !== event.data.instanceId) { // don't repost ANY of our own messages
               if (msgSourceTarget) { // the event came from a known different window, so send to all other targets
-                const allTargets: Target[] = this.targets.filter((target) =>  target.source !== msgSourceTarget?.source);
+                const allTargets: Target[] = this.targets.filter((target) =>  target.source !== msgSourceTarget?.source); // don't repost to the sender
                 allTargets.push({ source: window, origin: window.origin }); // repost for this window, we validated the source and others didn't
                 allTargets.forEach((target) => {
                   target.source.postMessage(
@@ -282,7 +283,7 @@ export default class MessageStateEvents<T> implements IStateEvents<T> {
   publish(data: T) {
     this.current = data;
     if (typeof window !== 'undefined') {
-      const allTargets: Target[] = [...this.targets, {source: window, origin: window.origin}]; // we don't repost our own msgs
+      const allTargets: Target[] = [...this.targets, {source: window, origin: window.origin}]; // send now because we won't repost our own msgs
       allTargets.forEach((target) => {
         target.source.postMessage(
           {
