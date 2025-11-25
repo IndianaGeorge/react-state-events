@@ -6,14 +6,12 @@ import { debugAnnounce, debugAddListener, debugRemoveListener, debugSend } from 
 const streamType = 'LocalStateEvents';
 
 export default class LocalStateEvents<T> implements IStateEvents<T> {
-  /** @deprecated Use `getCurrent()` instead. */
-  current: T;
-  /** @deprecated For internal use only. */
-  streamId: string;
-  /** @deprecated For internal use only. */
-  allowDebug: boolean;
-  /** @deprecated For internal use only. */
-  debugListener: DebugListener<IDebugEvent<T>> | null;
+  private current: T;
+  private streamId: string;
+  private allowDebug: boolean;
+  private debugListener: DebugListener<IDebugEvent<T>> | null;
+  private handlers: { callback: ICallback<T>, onError: IErrorCallback | null}[] = [];
+
   constructor(initial: T, debugName?: string, allowDebug: boolean = false) {
     this.current = initial;
     const streamId = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(8))));
@@ -26,7 +24,6 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
     }
   }
 
-  handlers: { callback: ICallback<T>, onError: IErrorCallback | null}[] = [];
   subscribe(callback: ICallback<T>, onError: IErrorCallback | null = null): void {
     if (this.allowDebug && this.handlers.length === 0) {
       this.debugListener = debugAddListener<T>(this.streamId, streamType, (value: T) => {
@@ -75,8 +72,7 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
     });
   }
 
-  /** @deprecated For internal use only. */
-  callHandlers(data: T): void {
+  private callHandlers(data: T): void {
     this.handlers.forEach((handler) => {
       try {
         handler.callback(data);

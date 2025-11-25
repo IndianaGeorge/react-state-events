@@ -1,7 +1,6 @@
 import type { IStateEvents, IErrorCallback } from './types/StateEvents';
 
 import { useState, useEffect } from 'react';
-import * as PropTypes from 'prop-types';
 import * as React from 'react';
 
 type subscriptionParameterType<T> = {
@@ -21,11 +20,5 @@ const Subscription = <T>({ stateEvents, children, onError }: subscriptionParamet
   }, [stateEvents, onError]);
   return typeof children === 'function' ? children(value) : null;
 }
-
-Subscription.propTypes = {
-  stateEvents: PropTypes.object.isRequired,
-  children: PropTypes.func.isRequired,
-  onError: PropTypes.func
-};
 
 export default Subscription;

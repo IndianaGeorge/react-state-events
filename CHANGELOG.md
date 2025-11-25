@@ -1,6 +1,17 @@
 # Changelog
 
-## [4.2.0] - 2025-09-28
+## [5.0.0] - 2025-11-24
+
+### Changed
+
+- Migrated from React 18 to React 19
+
+### Removed
+
+- Internal properties and methods became private (deprecated in 4.2.0)
+- Removed ExternalStateEvents (deprecated in 4.1.0)
+
+## [4.2.0] - 2025-11-24
 
 ### Added
 
