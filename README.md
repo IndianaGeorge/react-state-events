@@ -78,8 +78,8 @@ We describe windows to communicate with as Targets, with the following TypeScrip
 
 ```ts
 type Target = {
-  source: Window,
-  origin: string,
+  source: Window;
+  origin: string;
 }
 ```
 

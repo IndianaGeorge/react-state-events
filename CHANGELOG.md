@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.2.0] - 2025-09-28
+
+### Added
+
+- Deprecation notices for properties that should have been private
+- Fixed type syntax
+
 ## [4.1.0] - 2025-09-28
 
 ### Added

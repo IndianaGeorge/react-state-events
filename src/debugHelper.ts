@@ -1,10 +1,10 @@
 import type { ICallback } from "./types/StateEvents";
 
 export interface IDebugEvent<T> {
-  type: string,
-  id: string,
-  streamType: string,
-  payload: T,
+  type: string;
+  id: string;
+  streamType: string;
+  payload: T;
 }
 
 export type DebugListener<T> = (event: MessageEvent<T>) => any;

@@ -8,23 +8,32 @@ const initTimeoutMiliseconds = 500;
 const streamType = 'MessageStateEvents';
 
 type Target = {
-  source: Window,
-  origin: string,
+  source: Window;
+  origin: string;
 }
 
 export interface IMessageStateEventsOptions {
-  targets?: Target[],
+  targets?: Target[];
 };
 
 export default class MessageStateEvents<T> implements IStateEvents<T> {
+  /** @deprecated For internal use only. */
   instanceId: string;
+  /** @deprecated Use `getCurrent()` instead. */
   current: T;
+  /** @deprecated For internal use only. */
   name: string;
+  /** @deprecated For internal use only. */
   initTimer: ReturnType<typeof setTimeout> | null;
+  /** @deprecated For internal use only. */
   timestamp: number | null;
+  /** @deprecated For internal use only. */
   callbacks: {callback: ICallback<T>, onError: IErrorCallback | null}[];
+  /** @deprecated For internal use only. */
   handler: {callback: ICallback<T>, wrappedCallback: IMessageHandler, onError: IErrorCallback | null, debugHandler: DebugListener<IDebugEvent<T>> | null} | null;
+  /** @deprecated For internal use only. */
   targets: Target[];
+  /** @deprecated For internal use only. */
   allowDebug: boolean;
   constructor(initial: T, name: string, options: IMessageStateEventsOptions | boolean = {}, allowDebug = false) {
     this.instanceId = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(8))));

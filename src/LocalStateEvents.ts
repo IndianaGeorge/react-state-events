@@ -6,9 +6,13 @@ import { debugAnnounce, debugAddListener, debugRemoveListener, debugSend } from 
 const streamType = 'LocalStateEvents';
 
 export default class LocalStateEvents<T> implements IStateEvents<T> {
+  /** @deprecated Use `getCurrent()` instead. */
   current: T;
+  /** @deprecated For internal use only. */
   streamId: string;
+  /** @deprecated For internal use only. */
   allowDebug: boolean;
+  /** @deprecated For internal use only. */
   debugListener: DebugListener<IDebugEvent<T>> | null;
   constructor(initial: T, debugName?: string, allowDebug: boolean = false) {
     this.current = initial;
@@ -71,6 +75,7 @@ export default class LocalStateEvents<T> implements IStateEvents<T> {
     });
   }
 
+  /** @deprecated For internal use only. */
   callHandlers(data: T): void {
     this.handlers.forEach((handler) => {
       try {
